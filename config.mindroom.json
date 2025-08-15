@@ -1,0 +1,31 @@
+{
+    "default_server_config": {
+        "m.homeserver": {
+            "base_url": "http://localhost:8008",
+            "server_name": "localhost"
+        }
+    },
+    "disable_custom_urls": true,
+    "disable_guests": true,
+    "brand": "MindRoom",
+    "show_labs_settings": false,
+    "room_directory": {
+        "servers": ["localhost"]
+    },
+    "features": {
+        "feature_registration": false
+    },
+    "setting_defaults": {
+        "UIFeature.registration": false
+    },
+    "embedded_pages": {
+        "welcome_url": "welcome-mindroom.html"
+    },
+    "branding": {
+        "auth_header_logo_url": "themes/element/img/logos/mindroom.svg",
+        "auth_footer_links": [
+            { "text": "GitHub", "url": "https://github.com/yourusername/mindroom" },
+            { "text": "Documentation", "url": "https://github.com/yourusername/mindroom/blob/main/README.md" }
+        ]
+    }
+}

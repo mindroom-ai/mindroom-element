@@ -1,0 +1,96 @@
+<style type="text/css">
+    .mx_Parent {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 25px 35px;
+        color: #2e2f32;
+        min-height: 400px;
+    }
+
+    .mx_Logo {
+        height: 54px;
+        margin-top: 2px;
+    }
+
+    .mx_ButtonGroup {
+        margin-top: 30px;
+    }
+
+    .mx_ButtonParent {
+        display: flex;
+        padding: 14px 40px;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        border-radius: 8px;
+        background-repeat: no-repeat;
+        background-position: 10px center;
+        text-decoration: none;
+        color: white !important;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .mx_ButtonParent:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .mx_Header_title {
+        font-size: 32px;
+        font-weight: 600;
+        margin: 20px 0 0;
+    }
+
+    .mx_Header_subtitle {
+        font-size: 16px;
+        font-weight: normal;
+        margin: 12px 0 0;
+        color: #737D8C;
+    }
+
+    .mx_ButtonSignIn {
+        background-color: #0DBD8B;
+        min-width: 200px;
+    }
+
+    .mx_ButtonSignIn:hover {
+        background-color: #0CAC7C;
+    }
+
+    .mx_Button_iconSignIn {
+        background-image: url("welcome/images/icon-sign-in.svg");
+    }
+
+    @media only screen and (max-width: 480px) {
+        .mx_ButtonParent {
+            padding: 12px 30px;
+            font-size: 14px;
+        }
+        
+        .mx_Header_title {
+            font-size: 24px;
+        }
+        
+        .mx_Header_subtitle {
+            font-size: 14px;
+        }
+    }
+</style>
+
+<div class="mx_Parent">
+    <a href="https://github.com/yourusername/mindroom" target="_blank" rel="noopener">
+        <img src="$logoUrl" alt="" class="mx_Logo" />
+    </a>
+    <h1 class="mx_Header_title">Welcome to mindroom</h1>
+    <h4 class="mx_Header_subtitle">Your AI-powered Matrix chat interface</h4>
+    <div class="mx_ButtonGroup">
+        <a href="#/login" class="mx_ButtonParent mx_ButtonSignIn">
+            <div class="mx_ButtonLabel">_t("action|sign_in")</div>
+        </a>
+    </div>
+</div>
