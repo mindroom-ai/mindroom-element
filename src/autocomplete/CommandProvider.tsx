@@ -18,17 +18,21 @@ import QueryMatcher from "./QueryMatcher";
 import { TextualCompletion } from "./Components";
 import { type ICompletion, type ISelectionRange } from "./Autocompleter";
 import { type Command, Commands, CommandMap } from "../SlashCommands";
+import { MindRoomCommands } from "../MindRoomCommands";
 import { type TimelineRenderingType } from "../contexts/RoomContext";
 import { MatrixClientPeg } from "../MatrixClientPeg";
 
-const COMMAND_RE = /(^\/\w*)(?: .*)?/g;
+// MindRoom: Extended to support both / and ! commands
+const COMMAND_RE = /(^[\/!]\w*)(?: .*)?/g;
 
 export default class CommandProvider extends AutocompleteProvider {
     public matcher: QueryMatcher<Command>;
     private room: Room;
     public constructor(room: Room, renderingType?: TimelineRenderingType) {
         super({ commandRegex: COMMAND_RE, renderingType });
-        this.matcher = new QueryMatcher(Commands, {
+        // MindRoom: Combine Element and MindRoom commands
+        const allCommands = [...Commands, ...MindRoomCommands];
+        this.matcher = new QueryMatcher(allCommands, {
             keys: ["command", "args", "description"],
             funcs: [({ aliases }) => aliases.join(" ")], // aliases
             context: renderingType,
@@ -51,8 +55,15 @@ export default class CommandProvider extends AutocompleteProvider {
         // check if the full match differs from the first word (i.e. returns false if the command has args)
         if (command[0] !== command[1]) {
             // The input looks like a command with arguments, perform exact match
-            const name = command[1].slice(1); // strip leading `/`
-            if (CommandMap.has(name) && CommandMap.get(name)!.isEnabled(cli, this.room.roomId)) {
+            const name = command[1].slice(1); // strip leading `/` or `!`
+
+            // MindRoom: Check for ! prefix commands
+            if (command[1].startsWith("!")) {
+                const mindRoomCmd = MindRoomCommands.find((cmd) => cmd.command === name);
+                if (mindRoomCmd && mindRoomCmd.isEnabled(cli)) {
+                    matches = [mindRoomCmd];
+                }
+            } else if (CommandMap.has(name) && CommandMap.get(name)!.isEnabled(cli, this.room.roomId)) {
                 // some commands, namely `me` don't suit having the usage shown whilst typing their arguments
                 if (CommandMap.get(name)!.hideCompletionAfterSpace) return [];
                 matches = [CommandMap.get(name)!];
@@ -62,9 +73,18 @@ export default class CommandProvider extends AutocompleteProvider {
                 // If they have just entered `/` show everything
                 // We exclude the limit on purpose to have a comprehensive list
                 matches = Commands;
+            } else if (query === "!") {
+                // MindRoom: Show only MindRoom commands for !
+                matches = MindRoomCommands;
             } else {
                 // otherwise fuzzy match against all of the fields
                 matches = this.matcher.match(command[1], limit);
+                // MindRoom: Filter based on prefix to show only relevant commands
+                if (command[1].startsWith("!")) {
+                    matches = matches.filter(cmd => MindRoomCommands.includes(cmd));
+                } else {
+                    matches = matches.filter(cmd => Commands.includes(cmd));
+                }
             }
         }
 
@@ -86,9 +106,9 @@ export default class CommandProvider extends AutocompleteProvider {
                     type: "command",
                     component: (
                         <TextualCompletion
-                            title={`/${usedAlias || result.command}`}
+                            title={usedAlias ? `/${usedAlias}` : result.getCommand()}
                             subtitle={result.args}
-                            description={_t(result.description)}
+                            description={typeof result.description === 'string' ? result.description : _t(result.description)}
                         />
                     ),
                     range: range!,

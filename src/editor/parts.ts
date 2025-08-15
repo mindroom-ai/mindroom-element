@@ -693,8 +693,8 @@ export class PartCreator {
 // used in SendMessageComposer
 export class CommandPartCreator extends PartCreator {
     public createPartForInput(text: string, partIndex: number): Part {
-        // at beginning and starts with /? create
-        if (partIndex === 0 && text[0] === "/") {
+        // MindRoom: at beginning and starts with / or !? create command part
+        if (partIndex === 0 && (text[0] === "/" || text[0] === "!")) {
             // text will be inserted by model, so pass empty string
             return this.command("");
         } else {
