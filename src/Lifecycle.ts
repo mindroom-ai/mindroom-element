@@ -1071,7 +1071,8 @@ async function startMatrixClient(
     IntegrationManagers.sharedInstance().startWatching();
     ActiveWidgetStore.instance.start();
     LegacyCallHandler.instance.start();
-    checkBrowserSupport();
+    // MindRoom: Disable browser support warning
+    // checkBrowserSupport();
 
     // Start Mjolnir even though we haven't checked the feature flag yet. Starting
     // the thing just wastes CPU cycles, but should result in no actual functionality
