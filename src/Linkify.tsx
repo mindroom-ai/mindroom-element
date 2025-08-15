@@ -169,6 +169,7 @@ export const sanitizeHtmlParams: IOptions = {
         "img",
         "details",
         "summary",
+        "think", // MindRoom AI thinking blocks
     ],
     allowedAttributes: {
         // attribute sanitization happens after transformations, so we have to accept `style` for font, span & img
