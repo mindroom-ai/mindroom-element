@@ -1,0 +1,170 @@
+/*
+Copyright 2025 MindRoom
+
+SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Commercial
+Please see LICENSE files in the repository root for full details.
+*/
+
+.mx_CollapsibleBlock {
+    margin: 8px 0;
+    border: 1px solid $quinary-content;
+    border-radius: 8px;
+    background-color: $background;
+    overflow: hidden;
+
+    .mx_CollapsibleBlock_header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 8px 12px;
+        background-color: rgba($accent, 0.1);
+        border: none;
+        cursor: pointer;
+        font-size: var(--cpd-font-body-md-regular);
+        font-family: inherit;
+        text-align: left;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+            background-color: rgba($accent, 0.15);
+        }
+
+        &:active {
+            background-color: rgba($accent, 0.2);
+        }
+    }
+
+    .mx_CollapsibleBlock_chevron {
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+        color: $secondary-content;
+
+        &.mx_CollapsibleBlock_chevron--expanded {
+            transform: rotate(180deg);
+        }
+    }
+
+    .mx_CollapsibleBlock_icon {
+        font-size: 16px;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    .mx_CollapsibleBlock_label {
+        flex: 1;
+        font-weight: var(--cpd-font-weight-semibold);
+        color: $primary-content;
+    }
+
+    .mx_CollapsibleBlock_hint {
+        font-size: var(--cpd-font-body-sm);
+        color: $secondary-content;
+        font-style: italic;
+    }
+
+    .mx_CollapsibleBlock_content {
+        padding: 12px;
+        border-top: 1px solid $quinary-content;
+        background-color: rgba($system, 0.05);
+        color: $secondary-content;
+        font-size: var(--cpd-font-body-md-regular);
+        line-height: 1.5;
+        max-height: 400px;
+        overflow-y: auto;
+        
+        /* Style for nested code blocks */
+        pre, code {
+            background-color: rgba($system, 0.1);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        pre {
+            padding: 8px;
+            overflow-x: auto;
+        }
+
+        /* Ensure proper spacing for paragraphs */
+        p {
+            margin: 0.5em 0;
+            
+            &:first-child {
+                margin-top: 0;
+            }
+            
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+}
+
+/* Specific styling for different block types */
+.mx_CollapsibleBlock--thinking {
+    .mx_CollapsibleBlock_header {
+        background-color: rgba($accent, 0.1);
+    }
+}
+
+.mx_CollapsibleBlock--tool {
+    .mx_CollapsibleBlock_header {
+        background-color: rgba($links, 0.1);
+    }
+    
+    .mx_CollapsibleBlock_content {
+        font-family: $monospace-font-family;
+        font-size: var(--cpd-font-body-sm);
+    }
+}
+
+.mx_CollapsibleBlock--debug {
+    .mx_CollapsibleBlock_header {
+        background-color: rgba($alert, 0.15);
+    }
+    
+    .mx_CollapsibleBlock_content {
+        font-family: $monospace-font-family;
+        font-size: var(--cpd-font-body-sm);
+    }
+}
+
+.mx_CollapsibleBlock--system {
+    .mx_CollapsibleBlock_header {
+        background-color: rgba($system, 0.5);
+    }
+}
+
+.mx_CollapsibleBlock--plan {
+    .mx_CollapsibleBlock_header {
+        background-color: rgba($accent, 0.15);
+    }
+}
+
+.mx_CollapsibleBlock--analysis {
+    .mx_CollapsibleBlock_header {
+        background-color: rgba($tertiary-content, 0.1);
+    }
+}
+
+.mx_CollapsibleBlock--research {
+    .mx_CollapsibleBlock_header {
+        background-color: rgba($primary-content, 0.05);
+    }
+}
+
+.mx_CollapsibleBlock--code {
+    .mx_CollapsibleBlock_header {
+        background-color: rgba($quaternary-content, 0.15);
+    }
+    
+    .mx_CollapsibleBlock_content {
+        font-family: $monospace-font-family;
+    }
+}
+
+.mx_CollapsibleBlock--validation {
+    .mx_CollapsibleBlock_header {
+        background-color: rgba($accent, 0.08);
+    }
+}

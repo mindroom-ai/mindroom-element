@@ -338,7 +338,7 @@ export default class TextualBody extends React.Component<IBodyProps, IState> {
                 renderMentionPills
                 renderCodeBlocks
                 renderSpoilers
-                renderThinkingBlocks
+                renderCollapsibleBlocks
             />
         );
 
