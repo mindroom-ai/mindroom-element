@@ -1,0 +1,55 @@
+/* MindRoom CSS Overrides - Hide server picker and registration options */
+
+/* Hide the server picker when custom URLs are disabled */
+.mx_ServerPicker {
+    display: none !important;
+}
+
+/* Custom gradient background for login page */
+.mx_AuthPage {
+    background: 
+        radial-gradient(circle at 27% 37%, hsla(35, 90%, 48%, 0.3) 0px, transparent 50%),
+        radial-gradient(circle at 97% 21%, hsla(30, 50%, 60%, 0.25) 0px, transparent 50%),
+        radial-gradient(circle at 52% 99%, hsla(35, 90%, 48%, 0.2) 0px, transparent 50%),
+        #0a0a0a !important;
+}
+
+/* Simplify the login page header */
+.mx_AuthHeader {
+    padding: 20px 0;
+}
+
+/* Hide registration prompts if registration is disabled */
+.mx_WelcomePage_registrationDisabled .mx_Button_iconCreateAccount,
+.mx_AuthBody_changeFlow {
+    display: none !important;
+}
+
+/* Center the sign-in button when it's the only option */
+.mx_WelcomePage_registrationDisabled .mx_ButtonRow {
+    justify-content: center;
+}
+
+/* Hide "Create account" related elements */
+a[href="#/register"] {
+    display: none !important;
+}
+
+/* Thread panel optimizations for MindRoom */
+/* Since all conversations happen in threads, optimize the layout */
+.mx_RightPanel_ResizeWrapper {
+    /* Ensure thread panel is prominent by default */
+    flex: 0 0 75%;
+    max-width: 90% !important;
+}
+
+/* Ensure the main room body adjusts properly */
+.mx_RoomView_body {
+    min-width: 10%;
+    flex: 1 1 auto;
+}
+
+/* Optional: Make thread panel more visually prominent */
+.mx_RightPanel {
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+}

@@ -28,10 +28,10 @@ export default class AuthPage extends React.PureComponent<React.PropsWithChildre
 
     // cache the url as a static to prevent it changing without refreshing
     private static getWelcomeBackgroundUrl(): string {
-        if (AuthPage.welcomeBackgroundUrl) return AuthPage.welcomeBackgroundUrl;
+        if (AuthPage.welcomeBackgroundUrl !== undefined) return AuthPage.welcomeBackgroundUrl;
 
         const brandingConfig = SdkConfig.getObject("branding");
-        AuthPage.welcomeBackgroundUrl = "themes/element/img/backgrounds/lake.jpg";
+        AuthPage.welcomeBackgroundUrl = ""; // MindRoom: Use CSS gradient instead
 
         const configuredUrl = brandingConfig?.get("welcome_background_url");
         if (configuredUrl) {
@@ -47,9 +47,10 @@ export default class AuthPage extends React.PureComponent<React.PropsWithChildre
     }
 
     public render(): React.ReactElement {
-        const pageStyle = {
-            background: `center/cover fixed url(${AuthPage.getWelcomeBackgroundUrl()})`,
-        };
+        const backgroundUrl = AuthPage.getWelcomeBackgroundUrl();
+        const pageStyle = backgroundUrl ? {
+            background: `center/cover fixed url(${backgroundUrl})`,
+        } : {};
 
         const modalStyle: React.CSSProperties = {
             position: "relative",
