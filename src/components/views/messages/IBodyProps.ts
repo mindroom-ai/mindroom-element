@@ -6,13 +6,17 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import { type MatrixEvent } from "matrix-js-sdk/src/matrix";
+import { type MatrixEvent, type IContent } from "matrix-js-sdk/src/matrix";
 
 import type React from "react";
 import { type MediaEventHelper } from "../../../utils/MediaEventHelper";
 import type EditorStateTransfer from "../../../utils/EditorStateTransfer";
 import { type RoomPermalinkCreator } from "../../../utils/permalinks/Permalinks";
 import { type GetRelationsForEvent } from "../rooms/EventTile";
+import {
+    type MindroomLongTextDescriptor,
+    type MindroomLongTextStatus,
+} from "../../../utils/mindroomLongText";
 
 export interface IBodyProps {
     mxEvent: MatrixEvent;
@@ -53,4 +57,9 @@ export interface IBodyProps {
      * Optional ID for the root element.
      */
     id?: string;
+    mindroomLongText?: MindroomLongTextDescriptor;
+    renderedContent?: IContent;
+    mindroomStatus?: MindroomLongTextStatus;
+    mindroomError?: Error;
+    onMindroomRetry?: () => void;
 }

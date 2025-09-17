@@ -40,6 +40,8 @@ import MjolnirBody from "./MjolnirBody";
 import MBeaconBody from "./MBeaconBody";
 import { type GetRelationsForEvent, type IEventTileOps } from "../rooms/EventTile";
 import { DecryptionFailureBodyViewModel } from "../../../viewmodels/message-body/DecryptionFailureBodyViewModel";
+import { getMindroomLongTextDescriptor } from "../../../utils/mindroomLongText";
+import MindroomLongTextBody from "./MindroomLongTextBody";
 
 // onMessageAllowed is handled internally
 interface IProps extends Omit<IBodyProps, "onMessageAllowed" | "mediaEventHelper"> {
@@ -88,7 +90,7 @@ export default class MessageEvent extends React.Component<IProps> implements IMe
     public constructor(props: IProps) {
         super(props);
 
-        if (MediaEventHelper.isEligible(this.props.mxEvent)) {
+        if (MediaEventHelper.isEligible(this.props.mxEvent) && !getMindroomLongTextDescriptor(this.props.mxEvent)) {
             this.mediaHelper = new MediaEventHelper(this.props.mxEvent);
         }
 
@@ -105,9 +107,13 @@ export default class MessageEvent extends React.Component<IProps> implements IMe
     }
 
     public componentDidUpdate(prevProps: Readonly<IProps>): void {
-        if (this.props.mxEvent !== prevProps.mxEvent && MediaEventHelper.isEligible(this.props.mxEvent)) {
+        if (this.props.mxEvent !== prevProps.mxEvent) {
             this.mediaHelper?.destroy();
-            this.mediaHelper = new MediaEventHelper(this.props.mxEvent);
+            this.mediaHelper = undefined;
+
+            if (MediaEventHelper.isEligible(this.props.mxEvent) && !getMindroomLongTextDescriptor(this.props.mxEvent)) {
+                this.mediaHelper = new MediaEventHelper(this.props.mxEvent);
+            }
         }
 
         this.updateComponentMaps();
@@ -135,9 +141,14 @@ export default class MessageEvent extends React.Component<IProps> implements IMe
 
     private onDecrypted = (): void => {
         // Recheck MediaEventHelper eligibility as it can change when the event gets decrypted
-        if (MediaEventHelper.isEligible(this.props.mxEvent)) {
+        if (!getMindroomLongTextDescriptor(this.props.mxEvent)) {
+            if (MediaEventHelper.isEligible(this.props.mxEvent)) {
+                this.mediaHelper?.destroy();
+                this.mediaHelper = new MediaEventHelper(this.props.mxEvent);
+            }
+        } else {
             this.mediaHelper?.destroy();
-            this.mediaHelper = new MediaEventHelper(this.props.mxEvent);
+            this.mediaHelper = undefined;
         }
     };
 
@@ -244,6 +255,7 @@ export default class MessageEvent extends React.Component<IProps> implements IMe
 
     public render(): React.ReactNode {
         const content = this.props.mxEvent.getContent();
+        const mindroomDescriptor = getMindroomLongTextDescriptor(this.props.mxEvent);
         const type = this.props.mxEvent.getType();
         const msgtype = content.msgtype;
         let BodyType: React.ComponentType<IBodyProps> = RedactedBody;
@@ -261,6 +273,10 @@ export default class MessageEvent extends React.Component<IProps> implements IMe
             } else {
                 // Fallback to UnknownBody otherwise if not redacted
                 BodyType = UnknownBody;
+            }
+
+            if (mindroomDescriptor) {
+                BodyType = MindroomLongTextBody;
             }
 
             if (
@@ -292,6 +308,7 @@ export default class MessageEvent extends React.Component<IProps> implements IMe
         }
 
         const hasCaption =
+            !mindroomDescriptor &&
             [MsgType.Image, MsgType.File, MsgType.Audio, MsgType.Video].includes(msgtype as MsgType) &&
             content.filename &&
             content.filename !== content.body;
@@ -307,11 +324,12 @@ export default class MessageEvent extends React.Component<IProps> implements IMe
             editState: this.props.editState,
             onMessageAllowed: this.onTileUpdate,
             permalinkCreator: this.props.permalinkCreator,
-            mediaEventHelper: this.mediaHelper,
+            mediaEventHelper: mindroomDescriptor ? undefined : this.mediaHelper,
             getRelationsForEvent: this.props.getRelationsForEvent,
             isSeeingThroughMessageHiddenForModeration: this.props.isSeeingThroughMessageHiddenForModeration,
             inhibitInteraction: this.props.inhibitInteraction,
             id: this.props.id,
+            mindroomLongText: mindroomDescriptor ?? undefined,
         };
         if (hasCaption) {
             return <CaptionBody {...bodyProps} WrappedBodyType={BodyType} />;

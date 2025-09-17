@@ -3418,6 +3418,11 @@
             "title": "Failed to load timeline position",
             "unable_to_find": "Tried to load a specific point in this room's timeline, but was unable to find it."
         },
+        "mindroom_long_text": {
+            "download_original": "Download original file",
+            "load_failed": "Unable to load full message.",
+            "loading_label": "Loading full message…"
+        },
         "m.audio": {
             "error_downloading_audio": "Error downloading audio",
             "error_processing_audio": "Error processing audio message",
