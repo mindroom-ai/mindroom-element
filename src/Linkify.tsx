@@ -177,7 +177,6 @@ export const sanitizeHtmlParams: IOptions = {
         "plan", // Planning/strategy
         "analysis", // Analysis/evaluation
         "research", // Research/sources
-        "code", // Code generation details
         "validation", // Validation/testing results
     ],
     allowedAttributes: {

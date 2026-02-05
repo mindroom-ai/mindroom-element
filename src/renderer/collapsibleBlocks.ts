@@ -89,17 +89,6 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         defaultExpanded: false,
     },
     
-    // Code generation details
-    code: {
-        tag: "code",
-        icon: "💻",
-        label: "Code Generation",
-        expandedHint: "(hide code details)",
-        collapsedHint: "(show code details)",
-        className: "mx_CollapsibleBlock--code",
-        defaultExpanded: false,
-    },
-    
     // Validation/testing results
     validation: {
         tag: "validation",
