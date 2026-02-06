@@ -23,6 +23,7 @@ import {
     codeBlockRenderer,
     spoilerRenderer,
     collapsibleRenderer,
+    preprocessHtmlToolBlocks,
 } from "../../../renderer";
 import MatrixClientContext from "../../../contexts/MatrixClientContext.tsx";
 import { useSettingValue } from "../../../hooks/useSettings.ts";
@@ -177,9 +178,10 @@ const EventContentBody = memo(
         if (as === "div") includeDir = true; // force dir="auto" on divs
 
         const As = as;
-        const body = formattedBody ? (
+        const processedHtml = formattedBody ? preprocessHtmlToolBlocks(formattedBody) : undefined;
+        const body = processedHtml ? (
             <As ref={ref as any} className={className} dir={includeDir ? "auto" : undefined}>
-                {parse(formattedBody, {
+                {parse(processedHtml, {
                     replace: replacer,
                 })}
             </As>

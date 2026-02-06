@@ -73,6 +73,7 @@ function ToolEntry({ content }: { content: string }): React.JSX.Element {
 /**
  * Wrap consecutive bare ToolEntry elements into CollapsibleBlock(s).
  * Single tool → "Tool Call" label; groups → "N tool calls".
+ * Whitespace-only strings between tool entries don't break grouping.
  */
 function wrapToolEntries(parts: (string | React.JSX.Element)[]): (string | React.JSX.Element)[] {
     const toolConfig = getBlockConfig("tool");
@@ -95,6 +96,8 @@ function wrapToolEntries(parts: (string | React.JSX.Element)[]): (string | React
     for (const part of parts) {
         if (React.isValidElement(part) && part.type === ToolEntry) {
             toolGroup.push(part);
+        } else if (toolGroup.length > 0 && typeof part === "string" && !part.trim()) {
+            // Whitespace between consecutive tool blocks — skip, don't break group
         } else {
             flushGroup();
             merged.push(part);
@@ -103,6 +106,27 @@ function wrapToolEntries(parts: (string | React.JSX.Element)[]): (string | React
 
     flushGroup();
     return merged;
+}
+
+/**
+ * Pre-process HTML to group consecutive tool blocks for merging.
+ *
+ * markdown_to_html wraps each <tool> in its own <p>, making them
+ * impossible to merge via the per-node replace callback.  This function
+ * unwraps <tool> from <p> and groups consecutive blocks inside a
+ * <tool-group> custom element so the HTML handler can merge them.
+ */
+export function preprocessHtmlToolBlocks(html: string): string {
+    // Match <p> elements that contain only a <tool> block (with optional whitespace)
+    const pToolPattern = /<p>\s*(<tool>[\s\S]*?<\/tool>)\s*<\/p>/g;
+
+    // First pass: mark standalone tool-in-p blocks by unwrapping them
+    const unwrapped = html.replace(pToolPattern, "$1");
+
+    // Second pass: group consecutive <tool> blocks (separated by optional whitespace)
+    // into a <tool-group> wrapper
+    const groupPattern = /(<tool>[\s\S]*?<\/tool>)(\s*<tool>[\s\S]*?<\/tool>)+/g;
+    return unwrapped.replace(groupPattern, "<tool-group>$&</tool-group>");
 }
 
 /**
@@ -119,7 +143,6 @@ export function createCollapsibleRenderer(): RendererMap {
             if (!config) return undefined;
 
             if (tag === "tool") {
-                // Extract text content from children for ToolEntry parsing
                 const textContent = node.children
                     .map((child: DOMNode) => ("data" in child ? child.data : ""))
                     .join("");
@@ -134,6 +157,33 @@ export function createCollapsibleRenderer(): RendererMap {
             return <CollapsibleBlock config={config}>{domToReact(node.children as DOMNode[])}</CollapsibleBlock>;
         };
     });
+
+    // Handle <tool-group> wrapper (produced by preprocessHtmlToolBlocks)
+    renderer["tool-group" as keyof HTMLElementTagNameMap] = (node) => {
+        const toolConfig = getBlockConfig("tool");
+        if (!toolConfig) return undefined;
+
+        // Collect ToolEntry elements from each <tool> child
+        const entries: React.JSX.Element[] = [];
+        let key = 0;
+        for (const child of node.children as DOMNode[]) {
+            if ("name" in child && child.name === "tool") {
+                const textContent = child.children
+                    .map((c: DOMNode) => ("data" in c ? c.data : ""))
+                    .join("");
+                entries.push(<ToolEntry key={key++} content={decode(textContent)} />);
+            }
+        }
+
+        if (entries.length === 0) return undefined;
+
+        const label = entries.length === 1 ? "Tool Call" : `${entries.length} tool calls`;
+        return (
+            <CollapsibleBlock config={toolConfig} labelOverride={label}>
+                {entries}
+            </CollapsibleBlock>
+        );
+    };
 
     // Handle plain text messages that contain our supported tags
     renderer[Node.TEXT_NODE] = (node) => {
