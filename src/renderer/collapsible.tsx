@@ -109,27 +109,6 @@ function wrapToolEntries(parts: (string | React.JSX.Element)[]): (string | React
 }
 
 /**
- * Pre-process HTML to group consecutive tool blocks for merging.
- *
- * markdown_to_html wraps each <tool> in its own <p>, making them
- * impossible to merge via the per-node replace callback.  This function
- * unwraps <tool> from <p> and groups consecutive blocks inside a
- * <tool-group> custom element so the HTML handler can merge them.
- */
-export function preprocessHtmlToolBlocks(html: string): string {
-    // Match <p> elements that contain only a <tool> block (with optional whitespace)
-    const pToolPattern = /<p>\s*(<tool>[\s\S]*?<\/tool>)\s*<\/p>/g;
-
-    // First pass: mark standalone tool-in-p blocks by unwrapping them
-    const unwrapped = html.replace(pToolPattern, "$1");
-
-    // Second pass: group consecutive <tool> blocks (separated by optional whitespace)
-    // into a <tool-group> wrapper
-    const groupPattern = /(<tool>[\s\S]*?<\/tool>)(\s*<tool>[\s\S]*?<\/tool>)+/g;
-    return unwrapped.replace(groupPattern, "<tool-group>$&</tool-group>");
-}
-
-/**
  * Creates a renderer for collapsible blocks.
  * Handles all registered block types from collapsibleBlocks.ts
  */
@@ -158,7 +137,7 @@ export function createCollapsibleRenderer(): RendererMap {
         };
     });
 
-    // Handle <tool-group> wrapper (produced by preprocessHtmlToolBlocks)
+    // Handle <tool-group> wrapper (produced by the backend's markdown_to_html)
     renderer["tool-group" as keyof HTMLElementTagNameMap] = (node) => {
         const toolConfig = getBlockConfig("tool");
         if (!toolConfig) return undefined;
