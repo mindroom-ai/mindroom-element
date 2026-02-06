@@ -6,28 +6,131 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React from "react";
+import { decode } from "html-entities";
 import { domToReact, type DOMNode } from "html-react-parser";
 
 import { type RendererMap } from "./utils.tsx";
 import CollapsibleBlock from "../components/views/elements/CollapsibleBlock.tsx";
 import { getSupportedTags, getBlockConfig } from "./collapsibleBlocks.ts";
 
-const TOOL_CALL_MARKDOWN_PATTERN = /🔧\s+\*\*Tool Call:\*\*\s+`([\s\S]*?)`/gu;
-const TOOL_RESULT_MARKDOWN_PATTERN = /✅\s+\*\*`([^`\n]+)` result:\*\*\s*\n([^\n]*)/gu;
+const TOOL_CALL_MARKER = "🔧 **Tool Call:** `";
+const TOOL_RESULT_PREFIX = "✅ **`";
+const TOOL_RESULT_SUFFIX = "` result:**";
+
+const isLineBreakOrEnd = (text: string, index: number): boolean => {
+    if (index >= text.length) return true;
+    return text[index] === "\n" || text[index] === "\r";
+};
+
+const findNextToolMarker = (text: string, from: number): { index: number; kind: "call" | "result" } | null => {
+    const nextCall = text.indexOf(TOOL_CALL_MARKER, from);
+    const nextResult = text.indexOf(TOOL_RESULT_PREFIX, from);
+
+    if (nextCall === -1 && nextResult === -1) return null;
+    if (nextCall === -1) return { index: nextResult, kind: "result" };
+    if (nextResult === -1) return { index: nextCall, kind: "call" };
+    return nextCall < nextResult ? { index: nextCall, kind: "call" } : { index: nextResult, kind: "result" };
+};
+
+const findToolCallClosingBacktick = (text: string, contentStart: number, searchLimit: number): number => {
+    let cursor = contentStart;
+    while (cursor < searchLimit) {
+        const backtick = text.indexOf("`", cursor);
+        if (backtick === -1 || backtick >= searchLimit) {
+            return -1;
+        }
+        // Inline backticks in arguments are common; treat a trailing backtick at line end as the actual delimiter.
+        if (isLineBreakOrEnd(text, backtick + 1)) {
+            return backtick;
+        }
+        cursor = backtick + 1;
+    }
+    return -1;
+};
+
+const readResultBody = (text: string, start: number): { body: string; end: number } => {
+    let cursor = start;
+
+    if (text.startsWith("\r\n", cursor)) {
+        cursor += 2;
+    } else if (text[cursor] === "\n") {
+        cursor += 1;
+    }
+
+    const bodyStart = cursor;
+    let bodyEnd = bodyStart;
+
+    while (bodyEnd < text.length) {
+        const lineEnd = text.indexOf("\n", bodyEnd);
+        const nextBreak = lineEnd === -1 ? text.length : lineEnd;
+        const line = text.slice(bodyEnd, nextBreak).replace(/\r$/, "");
+
+        if (!line.trim()) {
+            break;
+        }
+        if (line.startsWith(TOOL_CALL_MARKER) || line.startsWith(TOOL_RESULT_PREFIX)) {
+            break;
+        }
+        bodyEnd = lineEnd === -1 ? text.length : lineEnd + 1;
+    }
+
+    return {
+        body: text.slice(bodyStart, bodyEnd).trim(),
+        end: bodyEnd,
+    };
+};
 
 const normalizeMarkdownCollapsibleBlocks = (text: string): string => {
-    if (!text.includes("🔧 **Tool Call:**") && !text.includes("✅ **`")) {
+    if (!text.includes(TOOL_CALL_MARKER.slice(0, -1)) && !text.includes(TOOL_RESULT_PREFIX)) {
         return text;
     }
 
-    return text
-        .replace(TOOL_CALL_MARKDOWN_PATTERN, (_match, toolCall: string) => {
-            return `<tool>${toolCall.trim()}</tool>`;
-        })
-        .replace(TOOL_RESULT_MARKDOWN_PATTERN, (_match, toolName: string, result: string) => {
-            const summary = result.trim() || "Completed";
-            return `<validation>${toolName.trim()}\n${summary}</validation>`;
-        });
+    let output = "";
+    let cursor = 0;
+
+    while (cursor < text.length) {
+        const nextMarker = findNextToolMarker(text, cursor);
+        if (!nextMarker) {
+            output += text.slice(cursor);
+            break;
+        }
+
+        output += text.slice(cursor, nextMarker.index);
+
+        if (nextMarker.kind === "call") {
+            const contentStart = nextMarker.index + TOOL_CALL_MARKER.length;
+            const nextBoundary = findNextToolMarker(text, contentStart)?.index ?? text.length;
+            const closingBacktick = findToolCallClosingBacktick(text, contentStart, nextBoundary);
+
+            if (closingBacktick === -1) {
+                output += text.slice(nextMarker.index, contentStart);
+                cursor = contentStart;
+                continue;
+            }
+
+            const toolCall = text.slice(contentStart, closingBacktick).trim();
+            output += `<tool>${toolCall}</tool>`;
+            cursor = closingBacktick + 1;
+            continue;
+        }
+
+        const toolNameStart = nextMarker.index + TOOL_RESULT_PREFIX.length;
+        const toolNameEnd = text.indexOf(TOOL_RESULT_SUFFIX, toolNameStart);
+        if (toolNameEnd === -1) {
+            output += text[nextMarker.index];
+            cursor = nextMarker.index + 1;
+            continue;
+        }
+
+        const toolName = text.slice(toolNameStart, toolNameEnd).trim();
+        const afterHeader = toolNameEnd + TOOL_RESULT_SUFFIX.length;
+        const { body, end } = readResultBody(text, afterHeader);
+        const summary = body || "Completed";
+        output += `<validation>${toolName}\n${summary}</validation>`;
+        cursor = end;
+    }
+
+    return output;
 };
 
 /**
@@ -80,9 +183,10 @@ export function createCollapsibleRenderer(): RendererMap {
             const config = getBlockConfig(tagName);
 
             if (config) {
+                const decodedContent = decode(content);
                 parts.push(
                     <CollapsibleBlock key={`${tagName}-${key++}`} config={config}>
-                        {content}
+                        {decodedContent}
                     </CollapsibleBlock>,
                 );
             } else {
