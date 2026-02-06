@@ -71,10 +71,10 @@ function ToolEntry({ content }: { content: string }): React.JSX.Element {
 }
 
 /**
- * Merge consecutive tool CollapsibleBlock elements into a single block.
- * Single tool blocks keep "Tool Call" label; groups get "N tool calls".
+ * Wrap consecutive bare ToolEntry elements into CollapsibleBlock(s).
+ * Single tool → "Tool Call" label; groups → "N tool calls".
  */
-function mergeConsecutiveToolBlocks(parts: (string | React.JSX.Element)[]): (string | React.JSX.Element)[] {
+function wrapToolEntries(parts: (string | React.JSX.Element)[]): (string | React.JSX.Element)[] {
     const toolConfig = getBlockConfig("tool");
     if (!toolConfig) return parts;
 
@@ -83,38 +83,18 @@ function mergeConsecutiveToolBlocks(parts: (string | React.JSX.Element)[]): (str
 
     const flushGroup = (): void => {
         if (toolGroup.length === 0) return;
-
-        if (toolGroup.length === 1) {
-            // Single tool block — use "Tool Call" label
-            merged.push(
-                <CollapsibleBlock key={`tool-single-${merged.length}`} config={toolConfig} labelOverride="Tool Call">
-                    {toolGroup[0].props.children}
-                </CollapsibleBlock>,
-            );
-        } else {
-            // Multiple consecutive tool blocks — merge with count label
-            merged.push(
-                <CollapsibleBlock
-                    key={`tool-group-${merged.length}`}
-                    config={toolConfig}
-                    labelOverride={`${toolGroup.length} tool calls`}
-                >
-                    {toolGroup.map((el, i) => (
-                        <React.Fragment key={i}>{el.props.children}</React.Fragment>
-                    ))}
-                </CollapsibleBlock>,
-            );
-        }
+        const label = toolGroup.length === 1 ? "Tool Call" : `${toolGroup.length} tool calls`;
+        merged.push(
+            <CollapsibleBlock key={`tool-${merged.length}`} config={toolConfig} labelOverride={label}>
+                {toolGroup}
+            </CollapsibleBlock>,
+        );
         toolGroup = [];
     };
 
     for (const part of parts) {
-        if (
-            React.isValidElement(part) &&
-            part.props &&
-            (part.props as { config?: { tag?: string } }).config?.tag === "tool"
-        ) {
-            toolGroup.push(part as React.JSX.Element);
+        if (React.isValidElement(part) && part.type === ToolEntry) {
+            toolGroup.push(part);
         } else {
             flushGroup();
             merged.push(part);
@@ -190,11 +170,8 @@ export function createCollapsibleRenderer(): RendererMap {
                 const decodedContent = decode(content);
 
                 if (tagName === "tool") {
-                    parts.push(
-                        <CollapsibleBlock key={`${tagName}-${key++}`} config={config}>
-                            <ToolEntry content={decodedContent} />
-                        </CollapsibleBlock>,
-                    );
+                    // Push bare ToolEntry — wrapToolEntries will group and wrap in CollapsibleBlock
+                    parts.push(<ToolEntry key={`tool-${key++}`} content={decodedContent} />);
                 } else {
                     parts.push(
                         <CollapsibleBlock key={`${tagName}-${key++}`} config={config}>
@@ -220,8 +197,8 @@ export function createCollapsibleRenderer(): RendererMap {
             return undefined;
         }
 
-        // Merge consecutive tool blocks
-        const merged = mergeConsecutiveToolBlocks(parts);
+        // Wrap consecutive bare ToolEntry elements into CollapsibleBlock(s)
+        const merged = wrapToolEntries(parts);
 
         return <>{merged}</>;
     };
