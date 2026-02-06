@@ -13,125 +13,117 @@ import { type RendererMap } from "./utils.tsx";
 import CollapsibleBlock from "../components/views/elements/CollapsibleBlock.tsx";
 import { getSupportedTags, getBlockConfig } from "./collapsibleBlocks.ts";
 
-const TOOL_CALL_MARKER = "🔧 **Tool Call:** `";
-const TOOL_RESULT_PREFIX = "✅ **`";
-const TOOL_RESULT_SUFFIX = "` result:**";
+/**
+ * Renders a single tool call entry with call/result parsing.
+ *
+ * Protocol:
+ * - Pending (streaming): `<tool>call</tool>` — no `\n` inside
+ * - Completed with result: `<tool>call\nresult</tool>` — `\n` separates call from result
+ * - Completed without result: `<tool>call\n</tool>` — `\n` present, empty result
+ */
+function ToolEntry({ content }: { content: string }): React.JSX.Element {
+    const newlineIndex = content.indexOf("\n");
 
-const isLineBreakOrEnd = (text: string, index: number): boolean => {
-    if (index >= text.length) return true;
-    return text[index] === "\n" || text[index] === "\r";
-};
-
-const findNextToolMarker = (text: string, from: number): { index: number; kind: "call" | "result" } | null => {
-    const nextCall = text.indexOf(TOOL_CALL_MARKER, from);
-    const nextResult = text.indexOf(TOOL_RESULT_PREFIX, from);
-
-    if (nextCall === -1 && nextResult === -1) return null;
-    if (nextCall === -1) return { index: nextResult, kind: "result" };
-    if (nextResult === -1) return { index: nextCall, kind: "call" };
-    return nextCall < nextResult ? { index: nextCall, kind: "call" } : { index: nextResult, kind: "result" };
-};
-
-const findToolCallClosingBacktick = (text: string, contentStart: number, searchLimit: number): number => {
-    let cursor = contentStart;
-    while (cursor < searchLimit) {
-        const backtick = text.indexOf("`", cursor);
-        if (backtick === -1 || backtick >= searchLimit) {
-            return -1;
-        }
-        // Inline backticks in arguments are common; treat a trailing backtick at line end as the actual delimiter.
-        if (isLineBreakOrEnd(text, backtick + 1)) {
-            return backtick;
-        }
-        cursor = backtick + 1;
-    }
-    return -1;
-};
-
-const readResultBody = (text: string, start: number): { body: string; end: number } => {
-    let cursor = start;
-
-    if (text.startsWith("\r\n", cursor)) {
-        cursor += 2;
-    } else if (text[cursor] === "\n") {
-        cursor += 1;
+    // No newline → pending (still streaming)
+    if (newlineIndex === -1) {
+        return (
+            <div className="mx_ToolEntry">
+                <span className="mx_ToolEntry_call">{content}</span>
+                <span className="mx_ToolEntry_pending"> ⏳</span>
+            </div>
+        );
     }
 
-    const bodyStart = cursor;
-    let bodyEnd = bodyStart;
+    const call = content.slice(0, newlineIndex);
+    const result = content.slice(newlineIndex + 1).trim();
 
-    while (bodyEnd < text.length) {
-        const lineEnd = text.indexOf("\n", bodyEnd);
-        const nextBreak = lineEnd === -1 ? text.length : lineEnd;
-        const line = text.slice(bodyEnd, nextBreak).replace(/\r$/, "");
-
-        if (!line.trim()) {
-            break;
-        }
-        if (line.startsWith(TOOL_CALL_MARKER) || line.startsWith(TOOL_RESULT_PREFIX)) {
-            break;
-        }
-        bodyEnd = lineEnd === -1 ? text.length : lineEnd + 1;
+    // Newline present but empty result → completed with no output
+    if (!result) {
+        return (
+            <div className="mx_ToolEntry">
+                <span className="mx_ToolEntry_call">{call}</span>
+                <span className="mx_ToolEntry_done"> ✓</span>
+            </div>
+        );
     }
 
-    return {
-        body: text.slice(bodyStart, bodyEnd).trim(),
-        end: bodyEnd,
+    const isMultiline = result.includes("\n");
+    const isLong = result.length > 80;
+
+    // Short single-line result → inline
+    if (!isMultiline && !isLong) {
+        return (
+            <div className="mx_ToolEntry">
+                <span className="mx_ToolEntry_call">{call}</span>
+                <span className="mx_ToolEntry_separator"> → </span>
+                <span className="mx_ToolEntry_result">{result}</span>
+            </div>
+        );
+    }
+
+    // Long or multiline result → block display
+    return (
+        <div className="mx_ToolEntry">
+            <div className="mx_ToolEntry_call">{call}</div>
+            <pre className="mx_ToolEntry_result mx_ToolEntry_result--block">{result}</pre>
+        </div>
+    );
+}
+
+/**
+ * Merge consecutive tool CollapsibleBlock elements into a single block.
+ * Single tool blocks keep "Tool Call" label; groups get "N tool calls".
+ */
+function mergeConsecutiveToolBlocks(parts: (string | React.JSX.Element)[]): (string | React.JSX.Element)[] {
+    const toolConfig = getBlockConfig("tool");
+    if (!toolConfig) return parts;
+
+    const merged: (string | React.JSX.Element)[] = [];
+    let toolGroup: React.JSX.Element[] = [];
+
+    const flushGroup = (): void => {
+        if (toolGroup.length === 0) return;
+
+        if (toolGroup.length === 1) {
+            // Single tool block — use "Tool Call" label
+            merged.push(
+                <CollapsibleBlock key={`tool-single-${merged.length}`} config={toolConfig} labelOverride="Tool Call">
+                    {toolGroup[0].props.children}
+                </CollapsibleBlock>,
+            );
+        } else {
+            // Multiple consecutive tool blocks — merge with count label
+            merged.push(
+                <CollapsibleBlock
+                    key={`tool-group-${merged.length}`}
+                    config={toolConfig}
+                    labelOverride={`${toolGroup.length} tool calls`}
+                >
+                    {toolGroup.map((el, i) => (
+                        <React.Fragment key={i}>{el.props.children}</React.Fragment>
+                    ))}
+                </CollapsibleBlock>,
+            );
+        }
+        toolGroup = [];
     };
-};
 
-const normalizeMarkdownCollapsibleBlocks = (text: string): string => {
-    if (!text.includes(TOOL_CALL_MARKER.slice(0, -1)) && !text.includes(TOOL_RESULT_PREFIX)) {
-        return text;
+    for (const part of parts) {
+        if (
+            React.isValidElement(part) &&
+            part.props &&
+            (part.props as { config?: { tag?: string } }).config?.tag === "tool"
+        ) {
+            toolGroup.push(part as React.JSX.Element);
+        } else {
+            flushGroup();
+            merged.push(part);
+        }
     }
 
-    let output = "";
-    let cursor = 0;
-
-    while (cursor < text.length) {
-        const nextMarker = findNextToolMarker(text, cursor);
-        if (!nextMarker) {
-            output += text.slice(cursor);
-            break;
-        }
-
-        output += text.slice(cursor, nextMarker.index);
-
-        if (nextMarker.kind === "call") {
-            const contentStart = nextMarker.index + TOOL_CALL_MARKER.length;
-            const nextBoundary = findNextToolMarker(text, contentStart)?.index ?? text.length;
-            const closingBacktick = findToolCallClosingBacktick(text, contentStart, nextBoundary);
-
-            if (closingBacktick === -1) {
-                output += text.slice(nextMarker.index, contentStart);
-                cursor = contentStart;
-                continue;
-            }
-
-            const toolCall = text.slice(contentStart, closingBacktick).trim();
-            output += `<tool>${toolCall}</tool>`;
-            cursor = closingBacktick + 1;
-            continue;
-        }
-
-        const toolNameStart = nextMarker.index + TOOL_RESULT_PREFIX.length;
-        const toolNameEnd = text.indexOf(TOOL_RESULT_SUFFIX, toolNameStart);
-        if (toolNameEnd === -1) {
-            output += text[nextMarker.index];
-            cursor = nextMarker.index + 1;
-            continue;
-        }
-
-        const toolName = text.slice(toolNameStart, toolNameEnd).trim();
-        const afterHeader = toolNameEnd + TOOL_RESULT_SUFFIX.length;
-        const { body, end } = readResultBody(text, afterHeader);
-        const summary = body || "Completed";
-        output += `<validation>${toolName}\n${summary}</validation>`;
-        cursor = end;
-    }
-
-    return output;
-};
+    flushGroup();
+    return merged;
+}
 
 /**
  * Creates a renderer for collapsible blocks.
@@ -144,16 +136,28 @@ export function createCollapsibleRenderer(): RendererMap {
     getSupportedTags().forEach((tag) => {
         renderer[tag as keyof HTMLElementTagNameMap] = (node) => {
             const config = getBlockConfig(tag);
-            if (config) {
-                return <CollapsibleBlock config={config}>{domToReact(node.children as DOMNode[])}</CollapsibleBlock>;
+            if (!config) return undefined;
+
+            if (tag === "tool") {
+                // Extract text content from children for ToolEntry parsing
+                const textContent = node.children
+                    .map((child: DOMNode) => ("data" in child ? child.data : ""))
+                    .join("");
+                const decoded = decode(textContent);
+                return (
+                    <CollapsibleBlock config={config} labelOverride="Tool Call">
+                        <ToolEntry content={decoded} />
+                    </CollapsibleBlock>
+                );
             }
-            return undefined;
+
+            return <CollapsibleBlock config={config}>{domToReact(node.children as DOMNode[])}</CollapsibleBlock>;
         };
     });
 
     // Handle plain text messages that contain our supported tags
     renderer[Node.TEXT_NODE] = (node) => {
-        const text = normalizeMarkdownCollapsibleBlocks(node.data);
+        const text = node.data;
 
         // Build regex pattern for all supported tags
         const tags = getSupportedTags().join("|");
@@ -166,7 +170,7 @@ export function createCollapsibleRenderer(): RendererMap {
         // Reset the regex for actual matching
         pattern.lastIndex = 0;
 
-        const parts: (string | JSX.Element)[] = [];
+        const parts: (string | React.JSX.Element)[] = [];
         let lastIndex = 0;
         let match;
         let key = 0;
@@ -184,11 +188,20 @@ export function createCollapsibleRenderer(): RendererMap {
 
             if (config) {
                 const decodedContent = decode(content);
-                parts.push(
-                    <CollapsibleBlock key={`${tagName}-${key++}`} config={config}>
-                        {decodedContent}
-                    </CollapsibleBlock>,
-                );
+
+                if (tagName === "tool") {
+                    parts.push(
+                        <CollapsibleBlock key={`${tagName}-${key++}`} config={config}>
+                            <ToolEntry content={decodedContent} />
+                        </CollapsibleBlock>,
+                    );
+                } else {
+                    parts.push(
+                        <CollapsibleBlock key={`${tagName}-${key++}`} config={config}>
+                            {decodedContent}
+                        </CollapsibleBlock>,
+                    );
+                }
             } else {
                 // If config not found, render as plain text
                 parts.push(match[0]);
@@ -207,7 +220,10 @@ export function createCollapsibleRenderer(): RendererMap {
             return undefined;
         }
 
-        return <>{parts}</>;
+        // Merge consecutive tool blocks
+        const merged = mergeConsecutiveToolBlocks(parts);
+
+        return <>{merged}</>;
     };
 
     return renderer;

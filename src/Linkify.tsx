@@ -177,7 +177,6 @@ export const sanitizeHtmlParams: IOptions = {
         "plan", // Planning/strategy
         "analysis", // Analysis/evaluation
         "research", // Research/sources
-        "validation", // Validation/testing results
     ],
     allowedAttributes: {
         // attribute sanitization happens after transformations, so we have to accept `style` for font, span & img
