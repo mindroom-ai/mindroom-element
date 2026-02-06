@@ -22,7 +22,7 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         className: "mx_CollapsibleBlock--thinking",
         defaultExpanded: false,
     },
-    
+
     // Tool/function calls
     tool: {
         tag: "tool",
@@ -33,7 +33,7 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         className: "mx_CollapsibleBlock--tool",
         defaultExpanded: false,
     },
-    
+
     // Debug information
     debug: {
         tag: "debug",
@@ -44,7 +44,7 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         className: "mx_CollapsibleBlock--debug",
         defaultExpanded: false,
     },
-    
+
     // System/internal processing
     system: {
         tag: "system",
@@ -55,7 +55,7 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         className: "mx_CollapsibleBlock--system",
         defaultExpanded: false,
     },
-    
+
     // Planning/strategy
     plan: {
         tag: "plan",
@@ -66,7 +66,7 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         className: "mx_CollapsibleBlock--plan",
         defaultExpanded: false,
     },
-    
+
     // Analysis/evaluation
     analysis: {
         tag: "analysis",
@@ -77,7 +77,7 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         className: "mx_CollapsibleBlock--analysis",
         defaultExpanded: false,
     },
-    
+
     // Research/sources
     research: {
         tag: "research",
@@ -88,7 +88,7 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         className: "mx_CollapsibleBlock--research",
         defaultExpanded: false,
     },
-    
+
     // Validation/testing results
     validation: {
         tag: "validation",
@@ -113,13 +113,6 @@ export function getSupportedTags(): string[] {
  */
 export function getBlockConfig(tag: string): CollapsibleBlockConfig | undefined {
     return COLLAPSIBLE_BLOCK_CONFIGS[tag];
-}
-
-/**
- * Check if a tag is supported
- */
-export function isTagSupported(tag: string): boolean {
-    return tag in COLLAPSIBLE_BLOCK_CONFIGS;
 }
 
 /**
