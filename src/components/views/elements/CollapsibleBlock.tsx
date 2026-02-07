@@ -27,13 +27,15 @@ export interface CollapsibleBlockConfig {
 interface IProps {
     children: ReactNode;
     config: CollapsibleBlockConfig;
+    /** Override the label from config */
+    labelOverride?: string;
 }
 
 /**
  * Generic collapsible block component for various types of content.
  * Can be used for AI thinking, tool calls, debug info, etc.
  */
-const CollapsibleBlock: React.FC<IProps> = ({ children, config }) => {
+const CollapsibleBlock: React.FC<IProps> = ({ children, config, labelOverride }) => {
     const [expanded, setExpanded] = useState(config.defaultExpanded || false);
     
     const toggleExpanded = useCallback((e: React.MouseEvent) => {
@@ -42,6 +44,7 @@ const CollapsibleBlock: React.FC<IProps> = ({ children, config }) => {
         setExpanded(!expanded);
     }, [expanded]);
 
+    const label = labelOverride ?? config.label;
     const expandedHint = config.expandedHint || "(click to hide)";
     const collapsedHint = config.collapsedHint || "(click to show)";
     const className = `mx_CollapsibleBlock ${config.className || ''} mx_CollapsibleBlock--${config.tag}`;
@@ -52,7 +55,7 @@ const CollapsibleBlock: React.FC<IProps> = ({ children, config }) => {
                 className="mx_CollapsibleBlock_header"
                 onClick={toggleExpanded}
                 aria-expanded={expanded}
-                aria-label={expanded ? `Collapse ${config.label}` : `Expand ${config.label}`}
+                aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
             >
                 <ChevronDownIcon 
                     className={`mx_CollapsibleBlock_chevron ${expanded ? 'mx_CollapsibleBlock_chevron--expanded' : ''}`}
@@ -63,7 +66,7 @@ const CollapsibleBlock: React.FC<IProps> = ({ children, config }) => {
                     {config.icon}
                 </span>
                 <span className="mx_CollapsibleBlock_label">
-                    {config.label}
+                    {label}
                 </span>
                 <span className="mx_CollapsibleBlock_hint">
                     {expanded ? expandedHint : collapsedHint}

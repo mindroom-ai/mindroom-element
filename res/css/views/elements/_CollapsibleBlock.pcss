@@ -157,14 +157,44 @@ Please see LICENSE files in the repository root for full details.
     .mx_CollapsibleBlock_header {
         background-color: rgba($quaternary-content, 0.15);
     }
-    
+
     .mx_CollapsibleBlock_content {
         font-family: $monospace-font-family;
     }
 }
 
-.mx_CollapsibleBlock--validation {
-    .mx_CollapsibleBlock_header {
-        background-color: rgba($accent, 0.08);
+/* Tool entry styles */
+.mx_ToolEntry {
+    padding: 4px 0;
+    font-family: $monospace-font-family;
+    font-size: var(--cpd-font-body-sm);
+    line-height: 1.4;
+
+    & + .mx_ToolEntry {
+        border-top: 1px solid $quinary-content;
     }
+}
+
+.mx_ToolEntry_call {
+    color: $primary-content;
+}
+
+.mx_ToolEntry_result {
+    color: $secondary-content;
+
+    &.mx_ToolEntry_result--block {
+        display: block;
+        margin: 4px 0 0 16px;
+        padding: 4px 8px;
+        background-color: rgba($system, 0.08);
+        border-radius: 4px;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+}
+
+.mx_ToolEntry_separator,
+.mx_ToolEntry_pending,
+.mx_ToolEntry_done {
+    color: $tertiary-content;
 }

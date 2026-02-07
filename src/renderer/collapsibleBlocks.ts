@@ -89,16 +89,6 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         defaultExpanded: false,
     },
 
-    // Validation/testing results
-    validation: {
-        tag: "validation",
-        icon: "✅",
-        label: "Validation Results",
-        expandedHint: "(hide validation)",
-        collapsedHint: "(show validation)",
-        className: "mx_CollapsibleBlock--validation",
-        defaultExpanded: false,
-    },
 };
 
 /**
