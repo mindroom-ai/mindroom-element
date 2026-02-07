@@ -18,15 +18,15 @@ import QueryMatcher from "./QueryMatcher";
 import { TextualCompletion } from "./Components";
 import { type ICompletion, type ISelectionRange } from "./Autocompleter";
 import { type Command, Commands, CommandMap } from "../SlashCommands";
-import { MindRoomCommands } from "../MindRoomCommands";
+import { MindRoomCommand, MindRoomCommands } from "../MindRoomCommands";
 import { type TimelineRenderingType } from "../contexts/RoomContext";
 import { MatrixClientPeg } from "../MatrixClientPeg";
 
 // MindRoom: Extended to support both / and ! commands
-const COMMAND_RE = /(^[\/!]\w*)(?: .*)?/g;
+const COMMAND_RE = /(^[/!]\w*)(?: .*)?/g;
 
 export default class CommandProvider extends AutocompleteProvider {
-    public matcher: QueryMatcher<Command>;
+    public matcher: QueryMatcher<Command | MindRoomCommand>;
     private room: Room;
     public constructor(room: Room, renderingType?: TimelineRenderingType) {
         super({ commandRegex: COMMAND_RE, renderingType });
@@ -51,7 +51,7 @@ export default class CommandProvider extends AutocompleteProvider {
 
         const cli = MatrixClientPeg.get();
 
-        let matches: Command[] = [];
+        let matches: (Command | MindRoomCommand)[] = [];
         // check if the full match differs from the first word (i.e. returns false if the command has args)
         if (command[0] !== command[1]) {
             // The input looks like a command with arguments, perform exact match
@@ -60,7 +60,7 @@ export default class CommandProvider extends AutocompleteProvider {
             // MindRoom: Check for ! prefix commands
             if (command[1].startsWith("!")) {
                 const mindRoomCmd = MindRoomCommands.find((cmd) => cmd.command === name);
-                if (mindRoomCmd && mindRoomCmd.isEnabled(cli)) {
+                if (mindRoomCmd && mindRoomCmd.isEnabled(cli, this.room.roomId)) {
                     matches = [mindRoomCmd];
                 }
             } else if (CommandMap.has(name) && CommandMap.get(name)!.isEnabled(cli, this.room.roomId)) {
@@ -80,10 +80,11 @@ export default class CommandProvider extends AutocompleteProvider {
                 // otherwise fuzzy match against all of the fields
                 matches = this.matcher.match(command[1], limit);
                 // MindRoom: Filter based on prefix to show only relevant commands
+                const mindRoomCommandNames = new Set(MindRoomCommands.map((cmd) => cmd.command));
                 if (command[1].startsWith("!")) {
-                    matches = matches.filter(cmd => MindRoomCommands.includes(cmd));
+                    matches = matches.filter((cmd) => mindRoomCommandNames.has(cmd.command));
                 } else {
-                    matches = matches.filter(cmd => Commands.includes(cmd));
+                    matches = matches.filter((cmd) => !mindRoomCommandNames.has(cmd.command));
                 }
             }
         }
@@ -108,7 +109,9 @@ export default class CommandProvider extends AutocompleteProvider {
                         <TextualCompletion
                             title={usedAlias ? `/${usedAlias}` : result.getCommand()}
                             subtitle={result.args}
-                            description={typeof result.description === 'string' ? result.description : _t(result.description)}
+                            description={
+                                result instanceof MindRoomCommand ? result.description : _t(result.description)
+                            }
                         />
                     ),
                     range: range!,

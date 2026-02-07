@@ -7,7 +7,7 @@ Please see LICENSE files in the repository root for full details.
 
 import React from "react";
 import { decode } from "html-entities";
-import { domToReact, type DOMNode } from "html-react-parser";
+import { domToReact, type DOMNode, Element as DomElement } from "html-react-parser";
 
 import { type RendererMap } from "./utils.tsx";
 import CollapsibleBlock from "../components/views/elements/CollapsibleBlock.tsx";
@@ -122,9 +122,7 @@ export function createCollapsibleRenderer(): RendererMap {
             if (!config) return undefined;
 
             if (tag === "tool") {
-                const textContent = node.children
-                    .map((child: DOMNode) => ("data" in child ? child.data : ""))
-                    .join("");
+                const textContent = node.childNodes.map((child) => ("data" in child ? child.data : "")).join("");
                 const decoded = decode(textContent);
                 return (
                     <CollapsibleBlock config={config} labelOverride="Tool Call">
@@ -133,7 +131,7 @@ export function createCollapsibleRenderer(): RendererMap {
                 );
             }
 
-            return <CollapsibleBlock config={config}>{domToReact(node.children as DOMNode[])}</CollapsibleBlock>;
+            return <CollapsibleBlock config={config}>{domToReact(node.childNodes as DOMNode[])}</CollapsibleBlock>;
         };
     });
 
@@ -145,11 +143,9 @@ export function createCollapsibleRenderer(): RendererMap {
         // Collect ToolEntry elements from each <tool> child
         const entries: React.JSX.Element[] = [];
         let key = 0;
-        for (const child of node.children as DOMNode[]) {
-            if ("name" in child && child.name === "tool") {
-                const textContent = child.children
-                    .map((c: DOMNode) => ("data" in c ? c.data : ""))
-                    .join("");
+        for (const child of node.childNodes as DOMNode[]) {
+            if (child instanceof DomElement && child.name === "tool") {
+                const textContent = child.childNodes.map((c) => ("data" in c ? c.data : "")).join("");
                 entries.push(<ToolEntry key={key++} content={decode(textContent)} />);
             }
         }
@@ -238,4 +234,4 @@ export function createCollapsibleRenderer(): RendererMap {
 /**
  * Default instance of the collapsible renderer
  */
-export const collapsibleRenderer = createCollapsibleRenderer();
+export const collapsibleRenderer: RendererMap = createCollapsibleRenderer();

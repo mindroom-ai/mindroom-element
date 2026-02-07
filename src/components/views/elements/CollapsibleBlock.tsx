@@ -37,46 +37,39 @@ interface IProps {
  */
 const CollapsibleBlock: React.FC<IProps> = ({ children, config, labelOverride }) => {
     const [expanded, setExpanded] = useState(config.defaultExpanded || false);
-    
-    const toggleExpanded = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setExpanded(!expanded);
-    }, [expanded]);
+
+    const toggleExpanded = useCallback(
+        (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setExpanded(!expanded);
+        },
+        [expanded],
+    );
 
     const label = labelOverride ?? config.label;
     const expandedHint = config.expandedHint || "(click to hide)";
     const collapsedHint = config.collapsedHint || "(click to show)";
-    const className = `mx_CollapsibleBlock ${config.className || ''} mx_CollapsibleBlock--${config.tag}`;
+    const className = `mx_CollapsibleBlock ${config.className || ""} mx_CollapsibleBlock--${config.tag}`;
 
     return (
         <div className={className}>
-            <button 
+            <button
                 className="mx_CollapsibleBlock_header"
                 onClick={toggleExpanded}
                 aria-expanded={expanded}
                 aria-label={expanded ? `Collapse ${label}` : `Expand ${label}`}
             >
-                <ChevronDownIcon 
-                    className={`mx_CollapsibleBlock_chevron ${expanded ? 'mx_CollapsibleBlock_chevron--expanded' : ''}`}
+                <ChevronDownIcon
+                    className={`mx_CollapsibleBlock_chevron ${expanded ? "mx_CollapsibleBlock_chevron--expanded" : ""}`}
                     width="16"
                     height="16"
                 />
-                <span className="mx_CollapsibleBlock_icon">
-                    {config.icon}
-                </span>
-                <span className="mx_CollapsibleBlock_label">
-                    {label}
-                </span>
-                <span className="mx_CollapsibleBlock_hint">
-                    {expanded ? expandedHint : collapsedHint}
-                </span>
+                <span className="mx_CollapsibleBlock_icon">{config.icon}</span>
+                <span className="mx_CollapsibleBlock_label">{label}</span>
+                <span className="mx_CollapsibleBlock_hint">{expanded ? expandedHint : collapsedHint}</span>
             </button>
-            {expanded && (
-                <div className="mx_CollapsibleBlock_content">
-                    {children}
-                </div>
-            )}
+            {expanded && <div className="mx_CollapsibleBlock_content">{children}</div>}
         </div>
     );
 };

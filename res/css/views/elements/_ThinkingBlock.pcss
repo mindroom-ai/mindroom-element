@@ -52,7 +52,7 @@ Please see LICENSE files in the repository root for full details.
     }
 
     .mx_ThinkingBlock_hint {
-        font-size: var(--cpd-font-body-sm);
+        font-size: var(--cpd-font-size-body-sm);
         color: $secondary-content;
         font-style: italic;
     }
@@ -66,9 +66,10 @@ Please see LICENSE files in the repository root for full details.
         line-height: 1.5;
         max-height: 400px;
         overflow-y: auto;
-        
+
         /* Style for nested code blocks */
-        pre, code {
+        pre,
+        code {
             background-color: rgba($system, 0.1);
             border-radius: 4px;
             padding: 2px 4px;
@@ -82,11 +83,11 @@ Please see LICENSE files in the repository root for full details.
         /* Ensure proper spacing for paragraphs */
         p {
             margin: 0.5em 0;
-            
+
             &:first-child {
                 margin-top: 0;
             }
-            
+
             &:last-child {
                 margin-bottom: 0;
             }

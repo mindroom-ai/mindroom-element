@@ -6,14 +6,13 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import { useCallback, useEffect, useState } from "react";
-import { type MatrixClient, type MatrixEvent, type IContent } from "matrix-js-sdk/src/matrix";
-import type { EncryptedFile, FileInfo } from "matrix-js-sdk/src/types";
+import { type IContent, type MatrixClient, type MatrixEvent } from "matrix-js-sdk/src/matrix";
 
+import type { EncryptedFile, FileInfo } from "matrix-js-sdk/src/types";
 import { mediaFromContent } from "../customisations/Media";
 import { decryptFile } from "./DecryptFile";
 
 export const MINDROOM_LONG_TEXT_KEY = "io.mindroom.long_text";
-export const MINDROOM_CONTINUATION_MARKER = "\n\n[Message continues in attached file]";
 
 export interface MindroomLongTextMetadata {
     version: number;
@@ -60,7 +59,9 @@ const stripMarkerFromHtml = (html?: string): string | undefined => {
     return html.replace("[Message continues in attached file]", "");
 };
 
-const isMindroomPayload = (content?: IContent): content is IContent & {
+const isMindroomPayload = (
+    content?: IContent,
+): content is IContent & {
     url?: string;
     file?: EncryptedFile;
     info?: FileInfo;
@@ -87,7 +88,9 @@ const descriptorFromContent = (
     if (!url) return null;
 
     const previewBody = stripMindroomMarker(typeof content.body === "string" ? content.body : "");
-    const previewFormatted = stripMarkerFromHtml(typeof content.formatted_body === "string" ? content.formatted_body : undefined);
+    const previewFormatted = stripMarkerFromHtml(
+        typeof content.formatted_body === "string" ? content.formatted_body : undefined,
+    );
 
     return {
         eventId,
@@ -106,11 +109,14 @@ const descriptorFromContent = (
 
 export const getMindroomLongTextDescriptor = (event: MatrixEvent): MindroomLongTextDescriptor | null => {
     const eventId = event.getId();
+    if (!eventId) return null;
     const direct = descriptorFromContent(event.getContent(), eventId, event.replacingEvent() !== null);
     if (direct) return direct;
 
     const wire = event.getWireContent();
-    const replacementContent = (wire?.["m.new_content"] ?? event.getOriginalContent()?.["m.new_content"]) as IContent | undefined;
+    const replacementContent = (wire?.["m.new_content"] ?? event.getOriginalContent()?.["m.new_content"]) as
+        | IContent
+        | undefined;
     if (replacementContent) {
         const descriptor = descriptorFromContent(replacementContent, eventId, true);
         if (descriptor) return descriptor;
@@ -137,10 +143,7 @@ const notify = (entry: CacheEntry): void => {
     }
 };
 
-const fetchMindroomText = async (
-    descriptor: MindroomLongTextDescriptor,
-    client: MatrixClient,
-): Promise<string> => {
+const fetchMindroomText = async (descriptor: MindroomLongTextDescriptor, client: MatrixClient): Promise<string> => {
     if (descriptor.isEncrypted) {
         const blob = await decryptFile(descriptor.file, descriptor.info);
         return await blob.text();
@@ -151,11 +154,7 @@ const fetchMindroomText = async (
     return await response.text();
 };
 
-const startFetch = (
-    entry: CacheEntry,
-    descriptor: MindroomLongTextDescriptor,
-    client: MatrixClient,
-): void => {
+const startFetch = (entry: CacheEntry, descriptor: MindroomLongTextDescriptor, client: MatrixClient): void => {
     if (entry.status === "loading" && entry.promise) return;
 
     entry.status = "loading";
@@ -188,7 +187,7 @@ export const useMindroomLongText = (
     descriptor: MindroomLongTextDescriptor | undefined,
     client: MatrixClient | null | undefined,
 ): MindroomLongTextHookResult => {
-    const [version, setVersion] = useState(0);
+    const [, setVersion] = useState(0);
 
     useEffect(() => {
         if (!descriptor || !client) return undefined;
@@ -208,7 +207,7 @@ export const useMindroomLongText = (
         return () => {
             entry.listeners.delete(listener);
         };
-    }, [descriptor?.mxcUri, client, descriptor]);
+    }, [descriptor, client]);
 
     const entry = descriptor ? getCacheEntry(descriptor.mxcUri) : undefined;
 
@@ -221,7 +220,7 @@ export const useMindroomLongText = (
         target.promise = undefined;
         notify(target);
         startFetch(target, descriptor, client);
-    }, [descriptor, client, version]);
+    }, [descriptor, client]);
 
     return {
         status: entry?.status ?? "idle",

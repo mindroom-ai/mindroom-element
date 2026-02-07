@@ -65,8 +65,7 @@ describe("collapsible renderer", () => {
         });
 
         it("merges tool blocks separated by whitespace (backend-style \\n\\n)", () => {
-            const message =
-                "<tool>save_file(file=a.py)\nok</tool>\n\n<tool>run_shell(cmd=pwd)\n/app</tool>";
+            const message = "<tool>save_file(file=a.py)\nok</tool>\n\n<tool>run_shell(cmd=pwd)\n/app</tool>";
             renderPlainText(message);
 
             expect(screen.getByRole("button", { name: "Expand 2 tool calls" })).toBeInTheDocument();
@@ -147,7 +146,8 @@ describe("collapsible renderer", () => {
 
         it("does not merge tool blocks separated by non-tool content", () => {
             // Backend does not group these (text between them)
-            const html = "<tool>save_file(file=a.py)\nok</tool>\n<p>Some text</p>\n<tool>run_shell(cmd=pwd)\n/app</tool>";
+            const html =
+                "<tool>save_file(file=a.py)\nok</tool>\n<p>Some text</p>\n<tool>run_shell(cmd=pwd)\n/app</tool>";
             renderHtml(html);
 
             expect(screen.getAllByRole("button", { name: "Expand Tool Call" })).toHaveLength(2);

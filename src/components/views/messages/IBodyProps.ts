@@ -13,10 +13,7 @@ import { type MediaEventHelper } from "../../../utils/MediaEventHelper";
 import type EditorStateTransfer from "../../../utils/EditorStateTransfer";
 import { type RoomPermalinkCreator } from "../../../utils/permalinks/Permalinks";
 import { type GetRelationsForEvent } from "../rooms/EventTile";
-import {
-    type MindroomLongTextDescriptor,
-    type MindroomLongTextStatus,
-} from "../../../utils/mindroomLongText";
+import { type MindroomLongTextDescriptor, type MindroomLongTextStatus } from "../../../utils/mindroomLongText";
 
 export interface IBodyProps {
     mxEvent: MatrixEvent;
