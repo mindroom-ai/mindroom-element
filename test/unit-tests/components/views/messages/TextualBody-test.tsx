@@ -315,7 +315,7 @@ describe("<TextualBody />", () => {
                 "<pre><code class=\"language-py\"># Python Program to calculate the square root\n\n# Note: change this value for a different result\nnum = 8 \n\n# To take the input from the user\n#num = float(input('Enter a number: '))\n\nnum_sqrt = num ** 0.5\nprint('The square root of %0.3f is %0.3f'%(num ,num_sqrt))\n</code></pre>\n",
             );
             const { container } = getComponent({ mxEvent: ev }, matrixClient);
-            const expandButton = container.querySelector<HTMLButtonElement>(".mx_CollapsibleBlock_header");
+            const expandButton = container.querySelector(".mx_CollapsibleBlock_header") as HTMLButtonElement | null;
             expect(expandButton).not.toBeNull();
             fireEvent.click(expandButton!);
 
