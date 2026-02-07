@@ -11,7 +11,10 @@ permissions: {}
 jobs:
     sonarqube:
         name: 🩻 SonarQube
-        if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event != 'merge_group'
+        if: |
+            github.event.workflow_run.conclusion == 'success' &&
+            github.event.workflow_run.event != 'merge_group' &&
+            github.repository_owner == 'element-hq'
         uses: matrix-org/matrix-js-sdk/.github/workflows/sonarcloud.yml@develop
         permissions:
             actions: read
