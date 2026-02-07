@@ -86,8 +86,8 @@ export default class MainSplit extends React.Component<IProps> {
         if (isNaN(rhsSize)) {
             // For MindRoom: default to 75% of the RoomView container width
             // The container excludes the left sidebar, so this gives us 75% of the main area
-            const roomViewElement = document.querySelector('.mx_RoomView_wrapper') || 
-                                   document.querySelector('.mx_RoomView');
+            const roomViewElement =
+                document.querySelector(".mx_RoomView_wrapper") || document.querySelector(".mx_RoomView");
             if (roomViewElement) {
                 // Use 75% of the RoomView container width
                 rhsSize = Math.floor(roomViewElement.clientWidth * 0.75);

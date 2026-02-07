@@ -88,7 +88,6 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         className: "mx_CollapsibleBlock--research",
         defaultExpanded: false,
     },
-
 };
 
 /**
@@ -103,19 +102,4 @@ export function getSupportedTags(): string[] {
  */
 export function getBlockConfig(tag: string): CollapsibleBlockConfig | undefined {
     return COLLAPSIBLE_BLOCK_CONFIGS[tag];
-}
-
-/**
- * Add a new block type configuration at runtime
- * Useful for plugins or dynamic configuration
- */
-export function registerBlockType(config: CollapsibleBlockConfig): void {
-    COLLAPSIBLE_BLOCK_CONFIGS[config.tag] = config;
-}
-
-/**
- * Remove a block type configuration
- */
-export function unregisterBlockType(tag: string): void {
-    delete COLLAPSIBLE_BLOCK_CONFIGS[tag];
 }

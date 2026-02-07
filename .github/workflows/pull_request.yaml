@@ -7,6 +7,7 @@ on:
 permissions: {}
 jobs:
     action:
+        if: github.repository_owner == 'matrix-org'
         uses: matrix-org/matrix-js-sdk/.github/workflows/pull_request.yaml@develop
         permissions:
             pull-requests: write

@@ -10,10 +10,7 @@ import { MsgType, type IContent } from "matrix-js-sdk/src/matrix";
 
 import TextualBody from "./TextualBody";
 import { useMatrixClientContext } from "../../../contexts/MatrixClientContext";
-import {
-    stripMindroomMarker,
-    useMindroomLongText,
-} from "../../../utils/mindroomLongText";
+import { stripMindroomMarker, useMindroomLongText } from "../../../utils/mindroomLongText";
 import { type IBodyProps } from "./IBodyProps";
 
 const asTextContent = (content?: IContent): string => {
@@ -33,10 +30,7 @@ const removeFileMetadata = (content: IContent): IContent => {
     return clone;
 };
 
-const buildPreviewContent = (
-    mxEvent: IBodyProps["mxEvent"],
-    descriptor: IBodyProps["mindroomLongText"],
-): IContent => {
+const buildPreviewContent = (mxEvent: IBodyProps["mxEvent"], descriptor: IBodyProps["mindroomLongText"]): IContent => {
     const original = mxEvent.getContent<IContent>();
     const previewBody = descriptor?.previewBody ?? stripMindroomMarker(asTextContent(original));
 
@@ -57,11 +51,7 @@ const buildPreviewContent = (
     return preview;
 };
 
-const buildLoadedContent = (
-    preview: IContent,
-    descriptor: IBodyProps["mindroomLongText"],
-    text?: string,
-): IContent => {
+const buildLoadedContent = (preview: IContent, descriptor: IBodyProps["mindroomLongText"], text?: string): IContent => {
     if (!descriptor || !text) return preview;
 
     const content: IContent = {
@@ -88,10 +78,7 @@ const MindroomLongTextBody: React.FC<IBodyProps> = (props) => {
     const client = useMatrixClientContext();
     const state = useMindroomLongText(descriptor, client);
 
-    const previewContent = useMemo(
-        () => buildPreviewContent(props.mxEvent, descriptor),
-        [props.mxEvent, descriptor],
-    );
+    const previewContent = useMemo(() => buildPreviewContent(props.mxEvent, descriptor), [props.mxEvent, descriptor]);
     const renderedContent = useMemo(
         () => buildLoadedContent(previewContent, descriptor, state.text),
         [previewContent, descriptor, state.text],

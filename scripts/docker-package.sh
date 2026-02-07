@@ -13,7 +13,8 @@ if [[ $BRANCH != HEAD && ! $BRANCH =~ heads/v.+ ]]
 then
     DIST_VERSION=$("$DIR"/get-version-from-git.sh)
 else
-    DIST_VERSION=$(git describe --abbrev=0 --tags)
+    # PR/shallow checkouts may not have tags available: fall back to SHA-based versioning.
+    DIST_VERSION=$(git describe --abbrev=0 --tags 2>/dev/null || "$DIR"/get-version-from-git.sh)
 fi
 
 DIST_VERSION=$("$DIR"/normalize-version.sh "$DIST_VERSION")

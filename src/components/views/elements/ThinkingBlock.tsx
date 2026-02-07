@@ -18,38 +18,33 @@ interface IProps {
  */
 const ThinkingBlock: React.FC<IProps> = ({ children }) => {
     const [expanded, setExpanded] = useState(false);
-    
-    const toggleExpanded = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setExpanded(!expanded);
-    }, [expanded]);
+
+    const toggleExpanded = useCallback(
+        (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setExpanded(!expanded);
+        },
+        [expanded],
+    );
 
     return (
         <div className="mx_ThinkingBlock">
-            <button 
+            <button
                 className="mx_ThinkingBlock_header"
                 onClick={toggleExpanded}
                 aria-expanded={expanded}
                 aria-label={expanded ? "Collapse thinking" : "Expand thinking"}
             >
-                <ChevronDownIcon 
-                    className={`mx_ThinkingBlock_chevron ${expanded ? 'mx_ThinkingBlock_chevron--expanded' : ''}`}
+                <ChevronDownIcon
+                    className={`mx_ThinkingBlock_chevron ${expanded ? "mx_ThinkingBlock_chevron--expanded" : ""}`}
                     width="16"
                     height="16"
                 />
-                <span className="mx_ThinkingBlock_label">
-                    🤔 AI Thinking Process
-                </span>
-                <span className="mx_ThinkingBlock_hint">
-                    {expanded ? "(click to hide)" : "(click to show)"}
-                </span>
+                <span className="mx_ThinkingBlock_label">🤔 AI Thinking Process</span>
+                <span className="mx_ThinkingBlock_hint">{expanded ? "(click to hide)" : "(click to show)"}</span>
             </button>
-            {expanded && (
-                <div className="mx_ThinkingBlock_content">
-                    {children}
-                </div>
-            )}
+            {expanded && <div className="mx_ThinkingBlock_content">{children}</div>}
         </div>
     );
 };

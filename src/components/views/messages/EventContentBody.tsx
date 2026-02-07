@@ -23,6 +23,7 @@ import {
     codeBlockRenderer,
     spoilerRenderer,
     collapsibleRenderer,
+    thinkingRenderer,
 } from "../../../renderer";
 import MatrixClientContext from "../../../contexts/MatrixClientContext.tsx";
 import { useSettingValue } from "../../../hooks/useSettings.ts";
@@ -84,6 +85,7 @@ const useReplacer = (content: IContent, mxEvent: MatrixEvent | undefined, option
         const keywordRegexpPattern = mxEvent ? getPushDetailsKeywordPatternRegexp(mxEvent) : undefined;
         const replacers = filterBoolean<RendererMap>([
             options.renderCollapsibleBlocks ? collapsibleRenderer : undefined,
+            options.renderCollapsibleBlocks ? thinkingRenderer : undefined,
             options.renderMentionPills ? mentionPillRenderer : undefined,
             options.renderKeywordPills && keywordRegexpPattern ? keywordPillRenderer : undefined,
             options.renderTooltipsForAmbiguousLinks && PlatformPeg.get()?.needsUrlTooltips()

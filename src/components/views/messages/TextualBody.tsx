@@ -401,9 +401,9 @@ export default class TextualBody extends React.Component<IBodyProps, IState> {
 
         let bodyWithSpinner = body;
         if (inlineSpinner) {
-            if (React.isValidElement(body)) {
+            if (React.isValidElement<{ children?: React.ReactNode }>(body)) {
                 const existingChildren = React.Children.toArray(body.props.children);
-                bodyWithSpinner = React.cloneElement(body, body.props, [...existingChildren, inlineSpinner]);
+                bodyWithSpinner = React.cloneElement(body, undefined, [...existingChildren, inlineSpinner]);
             } else {
                 bodyWithSpinner = (
                     <>
@@ -420,7 +420,7 @@ export default class TextualBody extends React.Component<IBodyProps, IState> {
                     {_t("timeline|mindroom_long_text|load_failed")}
                     {this.props.onMindroomRetry && (
                         <AccessibleButton kind="link_inline" onClick={this.props.onMindroomRetry}>
-                            {_t("common|try_again")}
+                            {_t("action|try_again")}
                         </AccessibleButton>
                     )}
                 </div>

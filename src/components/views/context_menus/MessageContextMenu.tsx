@@ -40,6 +40,7 @@ import {
     VisibilityOnIcon,
     ShareIcon,
     CopyIcon,
+    DownloadIcon,
     TreeIcon,
 } from "@vector-im/compound-design-tokens/assets/web/icons";
 
@@ -507,7 +508,7 @@ export default class MessageContextMenu extends React.Component<IProps, IState> 
         if (mindroomDescriptor) {
             mindroomDownloadButton = (
                 <IconizedContextMenuOption
-                    iconClassName="mx_MessageContextMenu_iconDownload"
+                    icon={<DownloadIcon className="mx_MessageContextMenu_iconDownload" />}
                     label={_t("timeline|mindroom_long_text|download_original")}
                     onClick={this.onDownloadMindroomOriginal}
                 />

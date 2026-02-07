@@ -48,9 +48,11 @@ export default class AuthPage extends React.PureComponent<React.PropsWithChildre
 
     public render(): React.ReactElement {
         const backgroundUrl = AuthPage.getWelcomeBackgroundUrl();
-        const pageStyle = backgroundUrl ? {
-            background: `center/cover fixed url(${backgroundUrl})`,
-        } : {};
+        const pageStyle = backgroundUrl
+            ? {
+                  background: `center/cover fixed url(${backgroundUrl})`,
+              }
+            : {};
 
         const modalStyle: React.CSSProperties = {
             position: "relative",

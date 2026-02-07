@@ -1,18 +1,19 @@
 /*
+Copyright 2025 MindRoom
+
 SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Commercial
+Please see LICENSE files in the repository root for full details.
 */
 
 import React from "react";
-import { act, render, screen, waitFor } from "@testing-library/react";
-import { MatrixEvent } from "matrix-js-sdk/src/models/event";
-import type { MatrixClient } from "matrix-js-sdk/src/matrix";
+import { type MatrixClient, MatrixEvent, type Room } from "matrix-js-sdk/src/matrix";
+import { act, render, screen, waitFor } from "jest-matrix-react";
 
 import MindroomLongTextBody from "../../src/components/views/messages/MindroomLongTextBody";
 import MatrixClientContext from "../../src/contexts/MatrixClientContext";
-import { getMindroomLongTextDescriptor, __testing__ as mindroomTestUtils } from "../../src/utils/mindroomLongText";
 import type { MindroomLongTextDescriptor } from "../../src/utils/mindroomLongText";
-import { TimelineRenderingType } from "../../src/contexts/RoomContext";
-import RoomContext from "../../src/contexts/RoomContext";
+import { getMindroomLongTextDescriptor, __testing__ as mindroomTestUtils } from "../../src/utils/mindroomLongText";
+import RoomContext, { type RoomContextType, TimelineRenderingType } from "../../src/contexts/RoomContext";
 
 jest.mock("../../src/customisations/Media", () => ({
     mediaFromContent: jest.fn(),
@@ -31,17 +32,16 @@ const matrixClientStub = {
     getUserId: jest.fn().mockReturnValue("@tester:example.org"),
 } as unknown as MatrixClient;
 
+const roomContextStub = {} as Room;
 const baseRoomContext = {
-    ...(RoomContext._currentValue as any),
+    room: roomContextStub,
+    roomViewStore: {} as RoomContextType["roomViewStore"],
     canReact: true,
     canSendMessages: true,
     timelineRenderingType: TimelineRenderingType.Room,
-};
+} as unknown as RoomContextType;
 
-const renderWithContexts = (
-    descriptor: MindroomLongTextDescriptor,
-    event: MatrixEvent,
-): ReturnType<typeof render> => {
+const renderWithContexts = (descriptor: MindroomLongTextDescriptor, event: MatrixEvent): ReturnType<typeof render> => {
     const props = {
         mxEvent: event,
         highlights: undefined,
@@ -70,10 +70,10 @@ const renderWithContexts = (
 
 const createEvent = (overrides: Partial<Record<string, unknown>> = {}, isEncrypted = false): MatrixEvent => {
     const content: any = {
-        msgtype: "m.file",
-        body: "Message preview\n\n[Message continues in attached file]",
-        filename: "message.txt",
-        info: {
+        "msgtype": "m.file",
+        "body": "Message preview\n\n[Message continues in attached file]",
+        "filename": "message.txt",
+        "info": {
             mimetype: isEncrypted ? "text/plain" : "text/plain",
             size: 123,
         },
