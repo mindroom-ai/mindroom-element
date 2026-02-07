@@ -161,5 +161,32 @@ describe("collapsible renderer", () => {
             expect(container).toHaveTextContent("World");
             expect(screen.getByRole("button", { name: "Expand Tool Call" })).toBeInTheDocument();
         });
+
+        it("renders backend contract HTML (two completed tools grouped)", () => {
+            // This HTML must match what the backend's test_tool_lifecycle_produces_expected_html
+            // asserts. If this test breaks, the backend contract test in
+            // tests/test_tool_events.py must be updated in sync.
+            const html = [
+                "<tool-group>",
+                "<tool>save_file(file=a.py)\nok</tool>",
+                "\n\n",
+                "<tool>run_shell(cmd=pwd)\n/app</tool>",
+                "</tool-group>",
+            ].join("");
+
+            const { container } = renderHtml(html);
+
+            // Grouped into a single collapsible
+            expect(screen.getByRole("button", { name: "Expand 2 tool calls" })).toBeInTheDocument();
+            expect(screen.queryByRole("button", { name: "Expand Tool Call" })).not.toBeInTheDocument();
+
+            // Expand and verify both tool entries render correctly
+            fireEvent.click(screen.getByRole("button", { name: "Expand 2 tool calls" }));
+
+            expect(container).toHaveTextContent("save_file(file=a.py)");
+            expect(container).toHaveTextContent("ok");
+            expect(container).toHaveTextContent("run_shell(cmd=pwd)");
+            expect(container).toHaveTextContent("/app");
+        });
     });
 });
