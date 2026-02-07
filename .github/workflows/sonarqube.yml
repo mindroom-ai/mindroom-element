@@ -9,6 +9,24 @@ concurrency:
     cancel-in-progress: true
 permissions: {}
 jobs:
+    sonarqube_skipped:
+        name: 🩻 SonarQube (skipped)
+        if: |
+            github.event.workflow_run.conclusion == 'success' &&
+            github.event.workflow_run.event != 'merge_group' &&
+            github.repository_owner != 'element-hq'
+        runs-on: ubuntu-24.04
+        permissions:
+            statuses: write
+        steps:
+            - uses: guibranco/github-status-action-v2@9bfa8773cdbdc6c185747fd43cd7faa9d7c32f09
+              with:
+                  authToken: ${{ secrets.GITHUB_TOKEN }}
+                  state: success
+                  context: ${{ github.workflow }} / SonarCloud (${{ github.event.workflow_run.event }} => ${{ github.event_name }})
+                  sha: ${{ github.event.workflow_run.head_sha }}
+                  target_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
     sonarqube:
         name: 🩻 SonarQube
         if: |
