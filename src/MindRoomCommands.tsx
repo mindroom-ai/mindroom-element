@@ -1,4 +1,11 @@
 /*
+Copyright 2026 New Vector Ltd.
+
+SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Commercial
+Please see LICENSE files in the repository root for full details.
+*/
+
+/*
 MindRoom-specific commands for Element Web
 */
 
@@ -13,7 +20,7 @@ export class MindRoomCommand {
     public readonly category: string;
     public readonly hideCompletionAfterSpace: boolean;
 
-    constructor(opts: any) {
+    public constructor(opts: any) {
         this.command = opts.command;
         this.aliases = opts.aliases || [];
         this.args = opts.args || "";
@@ -43,15 +50,12 @@ const createMindRoomCommand = (cmd: string, args: string, desc: string): MindRoo
 };
 
 export const MindRoomCommands = [
-    createMindRoomCommand("invite", "<agent>", "Invite an agent to this thread"),
-    createMindRoomCommand("uninvite", "<agent>", "Remove an agent from this thread"),
-    createMindRoomCommand("list_invites", "", "List all invited agents in current thread"),
-    createMindRoomCommand("widget", "[url]", "Add MindRoom configuration widget to the room"),
-    createMindRoomCommand("help", "[topic]", "Get help on available commands"),
-    createMindRoomCommand("link", "[thread-id]", "Link another thread's context (planned)"),
-    createMindRoomCommand("agents", "", "List available agents (planned)"),
-    createMindRoomCommand("context", "", "Show token usage (planned)"),
-    createMindRoomCommand("tag", "[name]", "Tag thread for memory sharing (planned)"),
-    createMindRoomCommand("branch", "", "Fork the conversation (planned)"),
-    createMindRoomCommand("schedule", "", "Manage agent automation (planned)"),
+    createMindRoomCommand("help", "[topic]", "Get help"),
+    createMindRoomCommand("schedule", "<task>", "Schedule a task"),
+    createMindRoomCommand("list_schedules", "", "List scheduled tasks"),
+    createMindRoomCommand("cancel_schedule", "<id|all>", "Cancel a scheduled task"),
+    createMindRoomCommand("widget", "[url]", "Add configuration widget"),
+    createMindRoomCommand("config", "<operation>", "Manage configuration"),
+    createMindRoomCommand("hi", "", "Show welcome message"),
+    createMindRoomCommand("skill", "<name> [args]", "Run a skill by name"),
 ];
