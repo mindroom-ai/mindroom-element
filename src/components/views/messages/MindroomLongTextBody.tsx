@@ -41,7 +41,7 @@ const buildPreviewContent = (mxEvent: IBodyProps["mxEvent"], descriptor: IBodyPr
     });
 
     if (descriptor?.previewFormattedBody) {
-        preview.format = descriptor.format ?? original.format;
+        preview.format = original.format;
         preview.formatted_body = descriptor.previewFormattedBody;
     } else {
         delete preview.format;
@@ -51,38 +51,13 @@ const buildPreviewContent = (mxEvent: IBodyProps["mxEvent"], descriptor: IBodyPr
     return preview;
 };
 
-const buildLoadedContent = (preview: IContent, descriptor: IBodyProps["mindroomLongText"], text?: string): IContent => {
-    if (!descriptor || !text) return preview;
-
-    const content: IContent = {
-        ...preview,
-        body: text,
-    };
-
-    const mimetype = descriptor.info?.mimetype?.toLowerCase() ?? "";
-    const treatAsHtml = descriptor.format === "org.matrix.custom.html" || mimetype.includes("html");
-
-    if (treatAsHtml) {
-        content.format = "org.matrix.custom.html";
-        content.formatted_body = text;
-    } else {
-        delete content.format;
-        delete content.formatted_body;
-    }
-
-    return content;
-};
-
 const MindroomLongTextBody: React.FC<IBodyProps> = (props) => {
     const descriptor = props.mindroomLongText;
     const client = useMatrixClientContext();
     const state = useMindroomLongText(descriptor, client);
 
     const previewContent = useMemo(() => buildPreviewContent(props.mxEvent, descriptor), [props.mxEvent, descriptor]);
-    const renderedContent = useMemo(
-        () => buildLoadedContent(previewContent, descriptor, state.text),
-        [previewContent, descriptor, state.text],
-    );
+    const renderedContent = useMemo(() => state.content ?? previewContent, [state.content, previewContent]);
 
     return (
         <TextualBody

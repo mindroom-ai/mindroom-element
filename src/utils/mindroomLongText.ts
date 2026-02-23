@@ -13,12 +13,14 @@ import { mediaFromContent } from "../customisations/Media";
 import { decryptFile } from "./DecryptFile";
 
 export const MINDROOM_LONG_TEXT_KEY = "io.mindroom.long_text";
+const MINDROOM_LONG_TEXT_V2_ENCODING = "matrix_event_content_json";
 
 export interface MindroomLongTextMetadata {
     version: number;
-    original_size: number;
+    encoding: string;
+    original_event_size: number;
     preview_size: number;
-    is_complete_text: boolean;
+    is_complete_content: boolean;
 }
 
 export interface MindroomLongTextDescriptor {
@@ -29,8 +31,6 @@ export interface MindroomLongTextDescriptor {
     info?: FileInfo;
     previewBody: string;
     previewFormattedBody?: string;
-    originalBody?: string;
-    format?: string;
     metadata: MindroomLongTextMetadata;
     isReplacement: boolean;
 }
@@ -39,7 +39,7 @@ export type MindroomLongTextStatus = "idle" | "loading" | "loaded" | "error";
 
 interface CacheEntry {
     status: MindroomLongTextStatus;
-    text?: string;
+    content?: IContent;
     error?: Error;
     listeners: Set<() => void>;
     promise?: Promise<void>;
@@ -59,6 +59,10 @@ const stripMarkerFromHtml = (html?: string): string | undefined => {
     return html.replace("[Message continues in attached file]", "");
 };
 
+const isObject = (value: unknown): value is Record<string, unknown> => {
+    return !!value && typeof value === "object" && !Array.isArray(value);
+};
+
 const isMindroomPayload = (
     content?: IContent,
 ): content is IContent & {
@@ -70,9 +74,12 @@ const isMindroomPayload = (
     format?: string;
     [MINDROOM_LONG_TEXT_KEY]: MindroomLongTextMetadata;
 } => {
-    if (!content) return false;
+    if (!content || !isObject(content)) return false;
+
     const payload = content[MINDROOM_LONG_TEXT_KEY];
-    return !!payload && typeof payload === "object";
+    if (!isObject(payload)) return false;
+
+    return payload.version === 2 && payload.encoding === MINDROOM_LONG_TEXT_V2_ENCODING;
 };
 
 const descriptorFromContent = (
@@ -100,16 +107,61 @@ const descriptorFromContent = (
         info,
         previewBody,
         previewFormattedBody: previewFormatted,
-        originalBody: typeof content.body === "string" ? content.body : undefined,
-        format: typeof content.format === "string" ? content.format : undefined,
         metadata: content[MINDROOM_LONG_TEXT_KEY],
         isReplacement,
     };
 };
 
+const normalizeHydratedMindroomContent = (hydratedContent: IContent): IContent => {
+    if (!isObject(hydratedContent["m.new_content"])) return hydratedContent;
+
+    const newContent = hydratedContent["m.new_content"] as IContent;
+    const looksLikeMessageContent =
+        typeof newContent.msgtype === "string" ||
+        typeof newContent.body === "string" ||
+        typeof newContent.formatted_body === "string";
+
+    if (!looksLikeMessageContent) return hydratedContent;
+
+    const normalizedContent: IContent = { ...newContent };
+
+    if (
+        normalizedContent["io.mindroom.tool_trace"] === undefined &&
+        hydratedContent["io.mindroom.tool_trace"] !== undefined
+    ) {
+        normalizedContent["io.mindroom.tool_trace"] = hydratedContent["io.mindroom.tool_trace"];
+    }
+
+    if (normalizedContent["m.mentions"] === undefined && hydratedContent["m.mentions"] !== undefined) {
+        normalizedContent["m.mentions"] = hydratedContent["m.mentions"];
+    }
+
+    if (
+        normalizedContent["com.mindroom.skip_mentions"] === undefined &&
+        hydratedContent["com.mindroom.skip_mentions"] !== undefined
+    ) {
+        normalizedContent["com.mindroom.skip_mentions"] = hydratedContent["com.mindroom.skip_mentions"];
+    }
+
+    if (typeof normalizedContent.body !== "string" && typeof hydratedContent.body === "string") {
+        normalizedContent.body = hydratedContent.body;
+    }
+
+    if (typeof normalizedContent.formatted_body !== "string" && typeof hydratedContent.formatted_body === "string") {
+        normalizedContent.formatted_body = hydratedContent.formatted_body;
+    }
+
+    if (typeof normalizedContent.msgtype !== "string" && typeof hydratedContent.msgtype === "string") {
+        normalizedContent.msgtype = hydratedContent.msgtype;
+    }
+
+    return normalizedContent;
+};
+
 export const getMindroomLongTextDescriptor = (event: MatrixEvent): MindroomLongTextDescriptor | null => {
     const eventId = event.getId();
     if (!eventId) return null;
+
     const direct = descriptorFromContent(event.getContent(), eventId, event.replacingEvent() !== null);
     if (direct) return direct;
 
@@ -117,6 +169,7 @@ export const getMindroomLongTextDescriptor = (event: MatrixEvent): MindroomLongT
     const replacementContent = (wire?.["m.new_content"] ?? event.getOriginalContent()?.["m.new_content"]) as
         | IContent
         | undefined;
+
     if (replacementContent) {
         const descriptor = descriptorFromContent(replacementContent, eventId, true);
         if (descriptor) return descriptor;
@@ -143,15 +196,30 @@ const notify = (entry: CacheEntry): void => {
     }
 };
 
-const fetchMindroomText = async (descriptor: MindroomLongTextDescriptor, client: MatrixClient): Promise<string> => {
+const parseHydratedContent = (jsonText: string): IContent => {
+    const parsed = JSON.parse(jsonText);
+    if (!isObject(parsed)) {
+        throw new Error("MindRoom long-text sidecar is not a JSON object");
+    }
+    return normalizeHydratedMindroomContent(parsed as IContent);
+};
+
+const fetchMindroomContent = async (
+    descriptor: MindroomLongTextDescriptor,
+    client: MatrixClient,
+): Promise<IContent> => {
+    let sidecarText: string;
+
     if (descriptor.isEncrypted) {
         const blob = await decryptFile(descriptor.file, descriptor.info);
-        return await blob.text();
+        sidecarText = await blob.text();
+    } else {
+        const media = mediaFromContent({ url: descriptor.mxcUri }, client);
+        const response = await media.downloadSource();
+        sidecarText = await response.text();
     }
 
-    const media = mediaFromContent({ url: descriptor.mxcUri }, client);
-    const response = await media.downloadSource();
-    return await response.text();
+    return parseHydratedContent(sidecarText);
 };
 
 const startFetch = (entry: CacheEntry, descriptor: MindroomLongTextDescriptor, client: MatrixClient): void => {
@@ -161,10 +229,10 @@ const startFetch = (entry: CacheEntry, descriptor: MindroomLongTextDescriptor, c
     entry.error = undefined;
     notify(entry);
 
-    entry.promise = fetchMindroomText(descriptor, client)
-        .then((text) => {
+    entry.promise = fetchMindroomContent(descriptor, client)
+        .then((content) => {
             entry.status = "loaded";
-            entry.text = text;
+            entry.content = content;
         })
         .catch((error) => {
             entry.status = "error";
@@ -178,7 +246,7 @@ const startFetch = (entry: CacheEntry, descriptor: MindroomLongTextDescriptor, c
 
 export interface MindroomLongTextHookResult {
     status: MindroomLongTextStatus;
-    text?: string;
+    content?: IContent;
     error?: Error;
     retry: () => void;
 }
@@ -215,7 +283,7 @@ export const useMindroomLongText = (
         if (!descriptor || !client) return;
         const target = getCacheEntry(descriptor.mxcUri);
         target.status = "idle";
-        target.text = undefined;
+        target.content = undefined;
         target.error = undefined;
         target.promise = undefined;
         notify(target);
@@ -224,7 +292,7 @@ export const useMindroomLongText = (
 
     return {
         status: entry?.status ?? "idle",
-        text: entry?.text,
+        content: entry?.content,
         error: entry?.error,
         retry,
     };

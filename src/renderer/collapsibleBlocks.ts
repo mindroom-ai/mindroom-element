@@ -23,17 +23,6 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         defaultExpanded: false,
     },
 
-    // Tool/function calls
-    tool: {
-        tag: "tool",
-        icon: "🔧",
-        label: "Tool Calls",
-        expandedHint: "(hide details)",
-        collapsedHint: "(show details)",
-        className: "mx_CollapsibleBlock--tool",
-        defaultExpanded: false,
-    },
-
     // Debug information
     debug: {
         tag: "debug",
@@ -88,6 +77,16 @@ export const COLLAPSIBLE_BLOCK_CONFIGS: Record<string, CollapsibleBlockConfig> =
         className: "mx_CollapsibleBlock--research",
         defaultExpanded: false,
     },
+};
+
+export const TOOL_REF_BLOCK_CONFIG: CollapsibleBlockConfig = {
+    tag: "tool",
+    icon: "🔧",
+    label: "Tool Call",
+    expandedHint: "(hide details)",
+    collapsedHint: "(show details)",
+    className: "mx_CollapsibleBlock--tool",
+    defaultExpanded: false,
 };
 
 /**

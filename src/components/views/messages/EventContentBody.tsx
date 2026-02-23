@@ -96,12 +96,14 @@ const useReplacer = (content: IContent, mxEvent: MatrixEvent | undefined, option
         ]);
         return combineRenderers(...replacers)({
             isHtml,
+            content,
             mxEvent,
             room,
             shouldShowPillAvatar,
             keywordRegexpPattern,
         });
     }, [
+        content,
         mxEvent,
         options.renderCollapsibleBlocks,
         options.renderMentionPills,
