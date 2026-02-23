@@ -19,6 +19,7 @@ const MAX_LINES_BEFORE_COLLAPSE = 5;
 
 interface Props {
     preNode: ParserElement;
+    showCollapseToggle?: boolean;
 }
 
 const ExpandCollapseButton: React.FC<{
@@ -32,16 +33,16 @@ const ExpandCollapseButton: React.FC<{
     );
 };
 
-const CodeBlock: React.FC<Props> = ({ preNode }) => {
+const CodeBlock: React.FC<Props> = ({ preNode, showCollapseToggle = true }) => {
     const enableSyntaxHighlightLanguageDetection = useSettingValue("enableSyntaxHighlightLanguageDetection");
     const showCodeLineNumbers = useSettingValue("showCodeLineNumbers");
     const expandCodeByDefault = useSettingValue("expandCodeByDefault");
-    const [expanded, setExpanded] = useState(expandCodeByDefault);
+    const [expanded, setExpanded] = useState(showCollapseToggle ? expandCodeByDefault : true);
 
     const text = textContent(preNode);
 
     let expandCollapseButton: JSX.Element | undefined;
-    if (text.split("\n").length >= MAX_LINES_BEFORE_COLLAPSE) {
+    if (showCollapseToggle && text.split("\n").length >= MAX_LINES_BEFORE_COLLAPSE) {
         expandCollapseButton = (
             <ExpandCollapseButton
                 expanded={expanded}
@@ -121,7 +122,7 @@ const CodeBlock: React.FC<Props> = ({ preNode }) => {
         <div className="mx_EventTile_pre_container">
             <pre
                 className={classNames({
-                    mx_EventTile_collapsedCodeBlock: !expanded,
+                    mx_EventTile_collapsedCodeBlock: showCollapseToggle && !expanded,
                 })}
             >
                 {lineNumbers}
