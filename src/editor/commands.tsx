@@ -23,6 +23,7 @@ export function isSlashCommand(model: EditorModel): boolean {
     const parts = model.parts;
     const firstPart = parts[0];
     if (firstPart) {
+        // MindRoom: Only treat / as commands, not ! (MindRoom commands are sent as messages)
         if (firstPart.type === Type.Command && firstPart.text.startsWith("/") && !firstPart.text.startsWith("//")) {
             return true;
         }
