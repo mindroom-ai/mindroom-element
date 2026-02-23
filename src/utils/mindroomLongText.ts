@@ -11,6 +11,7 @@ import { type IContent, type MatrixClient, type MatrixEvent } from "matrix-js-sd
 import type { EncryptedFile, FileInfo } from "matrix-js-sdk/src/types";
 import { mediaFromContent } from "../customisations/Media";
 import { decryptFile } from "./DecryptFile";
+import { MINDROOM_AI_RUN_KEY } from "./mindroomAiRun";
 
 export const MINDROOM_LONG_TEXT_KEY = "io.mindroom.long_text";
 const MINDROOM_LONG_TEXT_V2_ENCODING = "matrix_event_content_json";
@@ -130,6 +131,10 @@ const normalizeHydratedMindroomContent = (hydratedContent: IContent): IContent =
         hydratedContent["io.mindroom.tool_trace"] !== undefined
     ) {
         normalizedContent["io.mindroom.tool_trace"] = hydratedContent["io.mindroom.tool_trace"];
+    }
+
+    if (normalizedContent[MINDROOM_AI_RUN_KEY] === undefined && hydratedContent[MINDROOM_AI_RUN_KEY] !== undefined) {
+        normalizedContent[MINDROOM_AI_RUN_KEY] = hydratedContent[MINDROOM_AI_RUN_KEY];
     }
 
     if (normalizedContent["m.mentions"] === undefined && hydratedContent["m.mentions"] !== undefined) {
@@ -302,4 +307,5 @@ export const __testing__ = {
     resetCache(): void {
         mindroomCache.clear();
     },
+    normalizeHydratedMindroomContent,
 };

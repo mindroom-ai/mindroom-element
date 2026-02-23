@@ -34,6 +34,7 @@ import {
     ReactionAddIcon,
     ExpandIcon,
     CollapseIcon,
+    InfoIcon,
 } from "@vector-im/compound-design-tokens/assets/web/icons";
 
 import { _t } from "../../../languageHandler";
@@ -63,6 +64,7 @@ import PinningUtils from "../../../utils/PinningUtils";
 import PosthogTrackers from "../../../PosthogTrackers.ts";
 import { HideActionButton } from "./HideActionButton.tsx";
 import { getMindroomLongTextDescriptor } from "../../../utils/mindroomLongText";
+import { getMindroomAiRunTooltip } from "../../../utils/mindroomAiRun";
 
 interface IOptionsButtonProps {
     mxEvent: MatrixEvent;
@@ -249,6 +251,30 @@ const ReplyInThreadButton: React.FC<IReplyInThreadButton> = ({ mxEvent }) => {
     );
 };
 
+interface IAiRunInfoButtonProps {
+    tooltip: string;
+}
+
+const AiRunInfoButton: React.FC<IAiRunInfoButtonProps> = ({ tooltip }) => {
+    const onClick = (e: ButtonEvent): void => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    return (
+        <RovingAccessibleButton
+            className="mx_MessageActionBar_iconButton mx_MessageActionBar_aiRunInfoButton"
+            title={tooltip}
+            aria-label={_t("info_tooltip_title")}
+            onClick={onClick}
+            onContextMenu={onClick}
+            placement="top"
+        >
+            <InfoIcon />
+        </RovingAccessibleButton>
+    );
+};
+
 interface IMessageActionBarProps {
     mxEvent: MatrixEvent;
     reactions?: Relations | null | undefined;
@@ -413,6 +439,7 @@ export default class MessageActionBar extends React.PureComponent<IMessageAction
 
     public render(): React.ReactNode {
         const toolbarOpts: JSX.Element[] = [];
+        const mindroomAiRunTooltip = getMindroomAiRunTooltip(this.props.mxEvent);
         if (canEditContent(MatrixClientPeg.safeGet(), this.props.mxEvent)) {
             toolbarOpts.push(
                 <RovingAccessibleButton
@@ -578,6 +605,10 @@ export default class MessageActionBar extends React.PureComponent<IMessageAction
                         {this.props.isQuoteExpanded ? <CollapseIcon /> : <ExpandIcon />}
                     </RovingAccessibleButton>,
                 );
+            }
+
+            if (mindroomAiRunTooltip) {
+                toolbarOpts.push(<AiRunInfoButton tooltip={mindroomAiRunTooltip} key="mindroom_ai_run_info" />);
             }
 
             // The menu button should be last, so dump it there.

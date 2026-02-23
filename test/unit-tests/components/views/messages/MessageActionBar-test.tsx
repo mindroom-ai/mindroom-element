@@ -35,6 +35,7 @@ import SettingsStore from "../../../../../src/settings/SettingsStore";
 import { Action } from "../../../../../src/dispatcher/actions";
 import PinningUtils from "../../../../../src/utils/PinningUtils";
 import { ScopedRoomContextProvider } from "../../../../../src/contexts/ScopedRoomContext.tsx";
+import { MINDROOM_AI_RUN_KEY } from "../../../../../src/utils/mindroomAiRun";
 
 jest.mock("../../../../../src/dispatcher/dispatcher");
 
@@ -243,6 +244,34 @@ describe("<MessageActionBar />", () => {
             const { getByTestId, queryByLabelText } = getComponent({ mxEvent: alicesMessageEvent });
             fireEvent.click(queryByLabelText("Options")!);
             expect(getByTestId("mx_MessageContextMenu")).toBeTruthy();
+        });
+    });
+
+    describe("MindRoom AI run info button", () => {
+        it("renders an info button when AI run metadata is present", () => {
+            const eventWithMetadata = new MatrixEvent({
+                type: EventType.RoomMessage,
+                sender: userId,
+                room_id: roomId,
+                content: {
+                    msgtype: MsgType.Text,
+                    body: "hello",
+                    [MINDROOM_AI_RUN_KEY]: {
+                        version: 1,
+                        usage: {
+                            total_tokens: 42,
+                        },
+                    },
+                },
+            });
+
+            const { queryByLabelText } = getComponent({ mxEvent: eventWithMetadata });
+            expect(queryByLabelText("Information")).toBeTruthy();
+        });
+
+        it("does not render an info button when metadata is missing", () => {
+            const { queryByLabelText } = getComponent({ mxEvent: alicesMessageEvent });
+            expect(queryByLabelText("Information")).toBeFalsy();
         });
     });
 
