@@ -92,7 +92,16 @@ export async function upgradeRoom(
 
     let newRoomId: string;
     try {
-        ({ replacement_room: newRoomId } = await cli.upgradeRoom(room.roomId, targetVersion, additionalCreators));
+        const upgradeRoomWithCreators = cli.upgradeRoom as unknown as (
+            roomId: string,
+            version: string,
+            extraCreators?: string[],
+        ) => Promise<{ replacement_room: string }>;
+        ({ replacement_room: newRoomId } = await upgradeRoomWithCreators(
+            room.roomId,
+            targetVersion,
+            additionalCreators,
+        ));
     } catch (e) {
         if (!handleError) throw e;
         logger.error(e);

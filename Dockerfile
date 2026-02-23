@@ -7,6 +7,7 @@ FROM --platform=$BUILDPLATFORM node:24-bullseye@sha256:8036dbe5b1f465e3acb8b8660
 ARG USE_CUSTOM_SDKS=false
 ARG JS_SDK_REPO="https://github.com/matrix-org/matrix-js-sdk.git"
 ARG JS_SDK_BRANCH="master"
+ARG CONFIG_JSON="config.sample.json"
 
 WORKDIR /src
 
@@ -16,7 +17,7 @@ RUN yarn --network-timeout=200000 install
 RUN /src/scripts/docker-package.sh
 
 # Copy the config now so that we don't create another layer in the app image
-RUN cp /src/config.sample.json /src/webapp/config.json
+RUN test -f "/src/${CONFIG_JSON}" && cp "/src/${CONFIG_JSON}" /src/webapp/config.json
 
 # App
 FROM nginxinc/nginx-unprivileged:alpine-slim@sha256:9ac6a908ed07ba7d23cbf6048090453a081abf663c53a7c3f3bf96abc16c0799
