@@ -29,7 +29,7 @@ export default {
             ],
         },
     },
-    ignoreBinaries: ["test:storybook", "test:unit", "build:storybook"],
+    ignoreBinaries: ["test:storybook", "test:unit", "build:storybook", "python3"],
     ignoreDependencies: [
         // Required for `action-validator`
         "@action-validator/*",
