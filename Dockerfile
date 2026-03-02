@@ -7,6 +7,7 @@ FROM --platform=$BUILDPLATFORM node:24-bullseye@sha256:38edad6b2e5962120f5144ff9
 ARG USE_CUSTOM_SDKS=false
 ARG JS_SDK_REPO="https://github.com/matrix-org/matrix-js-sdk.git"
 ARG JS_SDK_BRANCH="master"
+ARG CONFIG_JSON="config.sample.json"
 
 WORKDIR /src
 
@@ -17,7 +18,7 @@ RUN pnpm install
 RUN /src/scripts/docker-package.sh
 
 # Copy the config now so that we don't create another layer in the app image
-RUN cp /src/config.sample.json /src/webapp/config.json
+RUN test -f "/src/${CONFIG_JSON}" && cp "/src/${CONFIG_JSON}" /src/webapp/config.json
 
 # App
 FROM nginxinc/nginx-unprivileged:alpine-slim@sha256:c9448f9aaf2dee3dccfe0d2e51d6927cc9fbfdbcada66b0b01c0759816d86a5b
