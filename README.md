@@ -46,6 +46,21 @@ Fork-specific changes are kept feature-scoped and documented in
 [`FORK_CHANGES.md`](./FORK_CHANGES.md) to reduce merge conflicts and keep
 rebases predictable.
 
+### Releases
+
+- Every push to `develop` creates an automated GitHub release tag in the
+  format `v<base_version>-mindroom.<n>`.
+- `base_version` is read from [`package.json`](./package.json) by default
+  (or `BASE_VERSION` if set), with upstream-style semver tags as fallback;
+  `<n>` increments from existing fork tags for that base version.
+- The Python helper is reusable across forks via env vars:
+  `RELEASE_TAG_PREFIX`, `RELEASE_TAG_SUFFIX`, `BASE_TAG_PREFIX`, `BASE_VERSION`.
+- Local preview of the next tag:
+
+```bash
+pnpm run release:next-tag
+```
+
 ---
 
 # Element

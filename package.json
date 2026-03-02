@@ -37,6 +37,7 @@
         "test:playwright:screenshots": "playwright-screenshots-experimental pnpm playwright test --update-snapshots --project=Chrome --grep @screenshot",
         "coverage": "pnpm test --coverage",
         "analyse:webpack-bundles": "webpack-bundle-analyzer webpack-stats.json webapp",
+        "release:next-tag": "python3 scripts/fork_release_tag.py",
         "postinstall": "node scripts/pnpm-link.ts"
     },
     "resolutions": {

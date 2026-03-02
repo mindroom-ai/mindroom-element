@@ -166,6 +166,22 @@ What changed:
   events still surface run information.
 - Added unit coverage for metadata parsing and tooltip rendering.
 
+### ci(release): auto-tag develop pushes with mindroom suffix
+
+Files changed:
+
+- `.github/workflows/auto-mindroom-release.yml`
+- `README.md`
+- `package.json`
+- `scripts/fork_release_tag.py`
+
+What changed:
+
+- Added a fork-specific release workflow that runs on `develop` branch pushes.
+- Added base-version-aware release tag computation in `scripts/fork_release_tag.py`.
+- Added `pnpm run release:next-tag` to preview the computed tag locally.
+- Documented release tag format and environment variable overrides in `README.md`.
+
 ## Runbook
 
 ### Core Guarantees
@@ -173,6 +189,7 @@ What changed:
 - Matrix tool telemetry renders from tool-ref markers plus `io.mindroom.tool_trace` metadata.
 - MindRoom v2 large messages (`io.mindroom.long_text`) hydrate from JSON sidecars inline.
 - MindRoom run telemetry (`io.mindroom.ai_run`) is available in a non-obtrusive message info tooltip.
+- `develop` branch pushes auto-publish GitHub releases with tags in `v<base_version>-mindroom.<n>` format.
 - `m.replace` stale-update race handling now comes from upstream `matrix-js-sdk` (no local patch file).
 
 ### Important Paths
@@ -183,6 +200,8 @@ What changed:
 - Long-text body wrapper: `src/components/views/messages/MindroomLongTextBody.tsx`
 - AI run metadata parser: `src/utils/mindroomAiRun.ts`
 - AI run tooltip host: `src/components/views/messages/MessageActionBar.tsx`
+- Release tag helper: `scripts/fork_release_tag.py`
+- Release workflow: `.github/workflows/auto-mindroom-release.yml`
 
 ### Validation
 
