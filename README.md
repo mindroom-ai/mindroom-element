@@ -7,6 +7,47 @@
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=element-web&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=element-web)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=element-web&metric=bugs)](https://sonarcloud.io/summary/new_code?id=element-web)
 
+# MindRoom Element Fork
+
+This is [MindRoom's](https://github.com/mindroom-ai) fork of
+[Element Web](https://github.com/element-hq/element-web). We use Element as
+the Matrix client UI for MindRoom's AI agent workflows.
+
+## Why this fork exists
+
+MindRoom streams rich agent output (tool traces, structured blocks, and
+sidecar-backed large text payloads) inside Matrix message content. Upstream
+Element does not natively render these MindRoom-specific markers in the way we
+need.
+
+This fork adds a rendering and interaction layer for MindRoom messages while
+keeping the app aligned with upstream Element behavior as much as possible.
+
+### Fork-specific changes
+
+- Tool trace rendering: collapsible block parsing/rendering for MindRoom
+  sections and tool reference metadata.
+- MindRoom command UX: `!` autocomplete with backend-synced command list,
+  inserted as standard chat messages.
+- Long-text hydration: inline rendering of `io.mindroom.long_text` sidecars
+  with retry/cache and "Download original file".
+- AI run metadata tooltip: a low-visibility info button in the message action
+  bar shows `io.mindroom.ai_run` context and usage metrics (model, tokens,
+  timing, tools) on hover.
+- MindRoom product UX defaults: branding, auth theming, welcome page, and
+  thread-first layout defaults.
+- Fork CI and image pipeline: MindRoom Docker workflow and fork-safe CI changes.
+
+### Staying in sync with upstream
+
+We regularly rebase this fork onto
+[element-hq/element-web](https://github.com/element-hq/element-web) `develop`.
+Fork-specific changes are kept feature-scoped and documented in
+[`FORK_CHANGES.md`](./FORK_CHANGES.md) to reduce merge conflicts and keep
+rebases predictable.
+
+---
+
 # Element
 
 Element (formerly known as Vector and Riot) is a Matrix web client built using the [Matrix
