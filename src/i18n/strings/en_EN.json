@@ -3553,8 +3553,6 @@
             "label": "Message Actions",
             "view_in_room": "View in room"
         },
-        "message_timestamp_received_at": "Received at: %(dateTime)s",
-        "message_timestamp_sent_at": "Sent at: %(dateTime)s",
         "mindroom_long_text": {
             "download_original": "Download original file",
             "load_failed": "Unable to load full message.",
