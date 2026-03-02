@@ -39,7 +39,7 @@ export default class MainSplit extends React.Component<IProps> {
     declare public context: React.ContextType<typeof SDKContext>;
 
     public static defaultProps = {
-        defaultSize: 320,
+        defaultSize: 320, // Fallback default size
     };
 
     public constructor(props: IProps, context: React.ContextType<typeof SDKContext>) {
@@ -84,7 +84,17 @@ export default class MainSplit extends React.Component<IProps> {
         let rhsSize = parseInt(window.localStorage.getItem(this.sizeSettingStorageKey)!, 10);
 
         if (isNaN(rhsSize)) {
-            rhsSize = this.props.defaultSize;
+            // For MindRoom: default to 75% of the RoomView container width
+            // The container excludes the left sidebar, so this gives us 75% of the main area
+            const roomViewElement =
+                document.querySelector(".mx_RoomView_wrapper") || document.querySelector(".mx_RoomView");
+            if (roomViewElement) {
+                // Use 75% of the RoomView container width
+                rhsSize = Math.floor(roomViewElement.clientWidth * 0.75);
+            } else {
+                // Fallback to the provided defaultSize
+                rhsSize = this.props.defaultSize;
+            }
         }
 
         return {
@@ -105,8 +115,8 @@ export default class MainSplit extends React.Component<IProps> {
                 <Resizable
                     key={this.props.sizeKey}
                     defaultSize={this.loadSidePanelSize()}
-                    minWidth={320}
-                    maxWidth="50%"
+                    minWidth={200}
+                    maxWidth="90%"
                     enable={{
                         top: false,
                         right: false,
