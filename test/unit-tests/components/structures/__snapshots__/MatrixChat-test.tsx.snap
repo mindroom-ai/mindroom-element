@@ -285,7 +285,7 @@ exports[`<MatrixChat /> with a soft-logged-out session should show the soft-logo
           >
             <img
               alt="Element"
-              src="themes/element/img/logos/element-logo.svg"
+              src="themes/element/img/logos/mindroom.png"
             />
           </aside>
           <div

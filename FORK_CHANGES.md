@@ -202,6 +202,7 @@ What changed:
 - AI run tooltip host: `src/components/views/messages/MessageActionBar.tsx`
 - Release tag helper: `scripts/fork_release_tag.py`
 - Release workflow: `.github/workflows/auto-mindroom-release.yml`
+- Branding assets: `res/themes/element/img/logos/`, `res/vector-icons/`, and `res/img/element-desktop-logo.png`
 
 ### Validation
 
