@@ -171,6 +171,7 @@ Files changed:
 
 - `FORK_CHANGES.md`
 - `res/themes/element/img/logos/mindroom-favicon.png`
+- `res/themes/element/img/logos/mindroom-favicon-source.png`
 - `res/vector-icons/24.png`
 - `res/vector-icons/120.png`
 - `res/vector-icons/144.png`
@@ -181,7 +182,7 @@ Files changed:
 
 What changed:
 
-- Refreshed the generated favicon/vector icon set from a favicon-specific MindRoom PNG for better small-size legibility.
+- Refreshed the generated favicon/vector icon set from a dedicated MindRoom favicon master PNG and kept an optimized favicon PNG alongside it.
 
 Why:
 
