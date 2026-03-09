@@ -186,7 +186,31 @@ What changed:
 
 Why:
 
-- The favicon/icon pipeline should use the simplified high-contrast mark rather than the larger transparent app logo.
+- Used dedicated favicon helper PNGs at the time to drive the generated vector icon set.
+
+### fix(brand): switch vector icons back to the transparent logo source
+
+Files changed:
+
+- `FORK_CHANGES.md`
+- `res/themes/element/img/logos/mindroom-favicon-source.png`
+- `res/themes/element/img/logos/mindroom-favicon.png`
+- `res/vector-icons/24.png`
+- `res/vector-icons/120.png`
+- `res/vector-icons/144.png`
+- `res/vector-icons/152.png`
+- `res/vector-icons/180.png`
+- `res/vector-icons/512.png`
+- `res/vector-icons/1024.png`
+
+What changed:
+
+- Rebuilt the browser/PWA vector icon set from the existing transparent `mindroom.png` asset.
+- Removed the redundant favicon helper PNGs once the repo-local transparent logo became the single source for generated vector icons.
+
+Why:
+
+- Browser favicon and web app icon formats support alpha, so the transparent logo is the correct source asset.
 
 ### ci(release): auto-tag develop pushes with mindroom suffix
 
