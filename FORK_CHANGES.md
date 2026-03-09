@@ -157,14 +157,36 @@ Files changed:
 
 What changed:
 
-- Added typed extraction/parsing for `io.mindroom.ai_run` metadata from
-  timeline events.
+- Added typed extraction/parsing for `io.mindroom.ai_run` metadata from timeline events.
 - Added a subtle info button on message rows; its hover tooltip shows run
   context and usage metrics (status, model/provider, token counts, timing, and
   tool count).
 - Wired metadata lookup through replacement-aware message content so edited
   events still surface run information.
 - Added unit coverage for metadata parsing and tooltip rendering.
+
+### chore(brand): refresh logo and favicon assets
+
+Files changed:
+
+- `FORK_CHANGES.md`
+- `res/themes/element/img/logos/mindroom-favicon.png`
+- `res/themes/element/img/logos/mindroom-favicon-source.png`
+- `res/vector-icons/24.png`
+- `res/vector-icons/120.png`
+- `res/vector-icons/144.png`
+- `res/vector-icons/152.png`
+- `res/vector-icons/180.png`
+- `res/vector-icons/512.png`
+- `res/vector-icons/1024.png`
+
+What changed:
+
+- Refreshed the generated favicon/vector icon set from a dedicated MindRoom favicon master PNG and kept an optimized favicon PNG alongside it.
+
+Why:
+
+- The favicon/icon pipeline should use the simplified high-contrast mark rather than the larger transparent app logo.
 
 ### ci(release): auto-tag develop pushes with mindroom suffix
 
@@ -202,6 +224,7 @@ What changed:
 - AI run tooltip host: `src/components/views/messages/MessageActionBar.tsx`
 - Release tag helper: `scripts/fork_release_tag.py`
 - Release workflow: `.github/workflows/auto-mindroom-release.yml`
+- Branding assets: `res/themes/element/img/logos/`, `res/vector-icons/`, and `res/img/element-desktop-logo.png`
 
 ### Validation
 
