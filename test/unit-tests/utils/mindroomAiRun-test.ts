@@ -27,6 +27,9 @@ describe("mindroomAiRun", () => {
                 input_tokens: 800,
                 output_tokens: 120,
                 total_tokens: 920,
+                cache_read_tokens: 640,
+                cache_write_tokens: 32,
+                reasoning_tokens: 24,
             },
             context: {
                 input_tokens: 800,
@@ -37,7 +40,9 @@ describe("mindroomAiRun", () => {
             },
         });
 
-        expect(tooltip).toBe("openai / gpt-4.1-mini • 920 tok (800 in, 120 out) • ctx 40% • 2 tools");
+        expect(tooltip).toBe(
+            "openai / gpt-4.1-mini • 920 tok (800 in, 120 out, 640 cached, 32 cache write, 24 reasoning) • ctx 40% • 2 tools",
+        );
     });
 
     it("includes non-completed status in tooltip", () => {
@@ -59,8 +64,8 @@ describe("mindroomAiRun", () => {
             room_id: "!room:server",
             sender: "@alice:server",
             content: {
-                msgtype: MsgType.Text,
-                body: "* edited",
+                "msgtype": MsgType.Text,
+                "body": "* edited",
                 "m.relates_to": {
                     rel_type: "m.replace",
                     event_id: "$original",
@@ -105,6 +110,8 @@ describe("mindroomAiRun", () => {
                         input_tokens: "800",
                         output_tokens: "120.0",
                         total_tokens: "920",
+                        cache_read_tokens: "640",
+                        reasoning_tokens: "24",
                     },
                     context: {
                         input_tokens: "800",
@@ -117,6 +124,19 @@ describe("mindroomAiRun", () => {
             },
         });
 
-        expect(getMindroomAiRunTooltip(event)).toBe("920 tok (800 in, 120 out) • ctx 40% • 2 tools");
+        expect(getMindroomAiRunTooltip(event)).toBe(
+            "920 tok (800 in, 120 out, 640 cached, 24 reasoning) • ctx 40% • 2 tools",
+        );
+    });
+
+    it("formats cache-only usage metadata", () => {
+        const tooltip = formatMindroomAiRunTooltip({
+            version: 1,
+            usage: {
+                cache_read_tokens: 2816,
+            },
+        });
+
+        expect(tooltip).toBe("2816 cached");
     });
 });

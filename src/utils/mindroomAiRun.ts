@@ -22,6 +22,9 @@ export interface MindroomAiRunMetadata {
         input_tokens?: number;
         output_tokens?: number;
         total_tokens?: number;
+        cache_read_tokens?: number;
+        cache_write_tokens?: number;
+        reasoning_tokens?: number;
     };
     context?: {
         input_tokens?: number;
@@ -80,6 +83,9 @@ const parseMetadata = (value: unknown): MindroomAiRunMetadata | undefined => {
                   input_tokens: asNonNegativeInt(value.usage.input_tokens),
                   output_tokens: asNonNegativeInt(value.usage.output_tokens),
                   total_tokens: asNonNegativeInt(value.usage.total_tokens),
+                  cache_read_tokens: asNonNegativeInt(value.usage.cache_read_tokens),
+                  cache_write_tokens: asNonNegativeInt(value.usage.cache_write_tokens),
+                  reasoning_tokens: asNonNegativeInt(value.usage.reasoning_tokens),
               }
             : undefined,
         context: isRecord(value.context)
@@ -111,14 +117,21 @@ const formatModelSummary = (metadata: MindroomAiRunMetadata): string | undefined
 const formatUsageSummary = (metadata: MindroomAiRunMetadata): string | undefined => {
     const inputTokens = metadata.usage?.input_tokens;
     const outputTokens = metadata.usage?.output_tokens;
+    const cacheReadTokens = metadata.usage?.cache_read_tokens;
+    const cacheWriteTokens = metadata.usage?.cache_write_tokens;
+    const reasoningTokens = metadata.usage?.reasoning_tokens;
     const totalTokens =
         metadata.usage?.total_tokens ??
         (typeof inputTokens === "number" && typeof outputTokens === "number" ? inputTokens + outputTokens : undefined);
 
-    if (typeof totalTokens === "number" && (typeof inputTokens === "number" || typeof outputTokens === "number")) {
-        const details: string[] = [];
-        if (typeof inputTokens === "number") details.push(`${inputTokens} in`);
-        if (typeof outputTokens === "number") details.push(`${outputTokens} out`);
+    const details: string[] = [];
+    if (typeof inputTokens === "number") details.push(`${inputTokens} in`);
+    if (typeof outputTokens === "number") details.push(`${outputTokens} out`);
+    if (typeof cacheReadTokens === "number") details.push(`${cacheReadTokens} cached`);
+    if (typeof cacheWriteTokens === "number") details.push(`${cacheWriteTokens} cache write`);
+    if (typeof reasoningTokens === "number") details.push(`${reasoningTokens} reasoning`);
+
+    if (typeof totalTokens === "number" && details.length > 0) {
         return `${totalTokens} tok (${details.join(", ")})`;
     }
 
@@ -126,10 +139,7 @@ const formatUsageSummary = (metadata: MindroomAiRunMetadata): string | undefined
         return `${totalTokens} tok`;
     }
 
-    if (typeof inputTokens === "number" || typeof outputTokens === "number") {
-        const details: string[] = [];
-        if (typeof inputTokens === "number") details.push(`${inputTokens} in`);
-        if (typeof outputTokens === "number") details.push(`${outputTokens} out`);
+    if (details.length > 0) {
         return details.join(", ");
     }
 
