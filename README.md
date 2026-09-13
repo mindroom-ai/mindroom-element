@@ -9,6 +9,11 @@
 
 # MindRoom Element Fork
 
+<picture>
+  <source media="(prefers-reduced-motion: no-preference)" srcset="https://raw.githubusercontent.com/mindroom-ai/mindroom/main/assets/logo/logo-mark-animated.svg" />
+  <img src="https://raw.githubusercontent.com/mindroom-ai/mindroom/main/assets/logo/logo-mark.svg" alt="MindRoom Logo" align="right" width="120" />
+</picture>
+
 This is [MindRoom's](https://github.com/mindroom-ai) fork of
 [Element Web](https://github.com/element-hq/element-web). We use Element as
 the Matrix client UI for MindRoom's AI agent workflows.
